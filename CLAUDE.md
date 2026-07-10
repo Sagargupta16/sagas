@@ -63,6 +63,28 @@ No test framework yet; `astro check` + a clean build is the bar.
 - Chapters need `order` (number) and get into RSS only once `publishedOn` is set.
 - Fan fiction is free and non-commercial, always. `universe` frontmatter names the source world.
 - The three seed books tagged `placeholder` exist to prove routes; replace them as real writing lands.
+- Per-book working files use a `_` prefix (`_outline.md`, `_bible.md`) so the collection globs ignore them.
+
+## Skills (project-level)
+
+Invoke via the Skill tool when the trigger matches. The craft knowledge base is `writing-craft` (18 reference modules of source-verified rules, fact-checked 2026-07-11); the other skills route into it.
+
+| Skill              | Use when Sagar...                                                                                                                                                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `writing-craft`    | ...asks any craft question; library of 18 modules (structure, character, worldbuilding, prose, dialogue, pacing, serial, openings, revision, POV, description, exposition, theme, genre, fanfic, essays, habits, formats) |
+| `new-book`         | ...starts a book on any shelf                                                                                                                                                                                             |
+| `outline-book`     | ...wants plot/structure for a book (`_outline.md`)                                                                                                                                                                        |
+| `writing-session`  | ...says "let's write" / wants a drafting session with quota and ritual                                                                                                                                                    |
+| `new-chapter`      | ...adds chapter prose to a book                                                                                                                                                                                           |
+| `critique-chapter` | ...wants a craft critique of a draft                                                                                                                                                                                      |
+| `revise-chapter`   | ...wants an edit pass (macro-to-micro ladder, -10% target)                                                                                                                                                                |
+| `story-bible`      | ...needs continuity tracking or a "does this contradict" check (`_bible.md`)                                                                                                                                              |
+| `worldbuild`       | ...designs magic/cultures/places (Sanderson's Laws applied)                                                                                                                                                               |
+| `name-forge`       | ...needs names or titles consistent with a book's conventions                                                                                                                                                             |
+| `fanfic-check`     | ...wants canon/OOC/tagging checks on the fanfic shelf                                                                                                                                                                     |
+| `write-essay`      | ...develops a perspective essay (Graham/Orwell method)                                                                                                                                                                    |
+| `publish-chapter`  | ...releases a chapter (gates, publishedOn, RSS verify)                                                                                                                                                                    |
+| `shelf-status`     | ...asks for a library-wide audit                                                                                                                                                                                          |
 
 ## Gotchas
 
