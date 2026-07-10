@@ -1,0 +1,129 @@
+/* sagas -- candlelit library. Dark-first, light honored via prefers-color-scheme. */
+
+:root {
+  color-scheme: dark light;
+
+  /* ink surfaces tinted toward candle gold (hue 80) */
+  --surface: light-dark(oklch(0.96 0.012 80), oklch(0.17 0.012 80));
+  --surface-raised: light-dark(oklch(0.93 0.016 80), oklch(0.21 0.016 80));
+  --ink: light-dark(oklch(0.24 0.02 80), oklch(0.88 0.02 80));
+  --ink-soft: light-dark(oklch(0.45 0.02 78), oklch(0.68 0.018 78));
+  --line: light-dark(oklch(0.85 0.02 80), oklch(0.3 0.018 80));
+
+  /* one accent: candle flame */
+  --flame: light-dark(oklch(0.55 0.13 65), oklch(0.78 0.13 75));
+  --flame-dim: light-dark(oklch(0.55 0.06 65), oklch(0.78 0.06 75));
+
+  --font-display: 'Eczar Variable', Georgia, serif;
+  --font-body: 'Literata Variable', Georgia, serif;
+
+  /* 4pt scale */
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+
+  /* type scale, ratio ~1.3, headings fluid */
+  --text-sm: 0.85rem;
+  --text-body: 1.0625rem;
+  --text-lg: clamp(1.25rem, 1.1rem + 0.8vw, 1.5rem);
+  --text-xl: clamp(1.6rem, 1.3rem + 1.5vw, 2.2rem);
+  --text-2xl: clamp(2.1rem, 1.6rem + 2.6vw, 3.2rem);
+
+  --measure: 65ch;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  font-size: var(--text-body);
+  line-height: 1.65;
+  display: flex;
+  flex-direction: column;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.15;
+  margin: 0;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--flame);
+  text-decoration-color: var(--flame-dim);
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 180ms var(--ease-out);
+}
+
+a:hover {
+  text-decoration-color: var(--flame);
+}
+
+::selection {
+  background: var(--flame);
+  color: var(--surface);
+}
+
+main {
+  width: min(100% - 2 * var(--space-lg), 44rem);
+  margin-inline: auto;
+  padding-block: var(--space-2xl) var(--space-3xl);
+  flex: 1;
+}
+
+/* staggered rise on page load */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rise {
+  animation: rise 700ms var(--ease-out) backwards;
+}
+
+.rise:nth-child(2) {
+  animation-delay: 90ms;
+}
+.rise:nth-child(3) {
+  animation-delay: 180ms;
+}
+.rise:nth-child(4) {
+  animation-delay: 270ms;
+}
+.rise:nth-child(5) {
+  animation-delay: 360ms;
+}
+.rise:nth-child(6) {
+  animation-delay: 450ms;
+}

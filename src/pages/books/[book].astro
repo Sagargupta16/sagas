@@ -1,0 +1,167 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import {
+  SHELVES,
+  STATUS_LABELS,
+  CHAPTER_STATUS_LABELS,
+  bookSlug,
+  chapterSlug,
+  formatDate,
+} from '../../lib/shelf';
+
+export async function getStaticPaths() {
+  const books = await getCollection('books');
+  return books.map((book) => ({
+    params: { book: bookSlug(book.id) },
+    props: { book },
+  }));
+}
+
+const { book } = Astro.props;
+const slug = bookSlug(book.id);
+
+const chapters = (
+  await getCollection('chapters', (c) => bookSlug(c.id) === slug)
+).sort((a, b) => a.data.order - b.data.order);
+
+const { Content } = await render(book);
+---
+
+<Base title={`${book.data.title} -- sagas`} description={book.data.synopsis}>
+  <main>
+    <article class="rise">
+      <p class="shelf-name">{SHELVES[book.data.shelf].name}</p>
+      <h1>{book.data.title}</h1>
+      <p class="meta">
+        <span class="status">{STATUS_LABELS[book.data.status]}</span>
+        {book.data.universe && <span>set in: {book.data.universe}</span>}
+        <span>since {formatDate(book.data.startedOn)}</span>
+      </p>
+      <p class="synopsis">{book.data.synopsis}</p>
+      <div class="about">
+        <Content />
+      </div>
+    </article>
+
+    <section class="chapters rise">
+      <h2>Chapters</h2>
+      {
+        chapters.length === 0 ? (
+          <p class="empty">
+            No chapters yet. This book is still forming; when the first chapter
+            lands, it appears here.
+          </p>
+        ) : (
+          <ol>
+            {chapters.map((chapter) => (
+              <li>
+                <a href={`/books/${slug}/${chapterSlug(chapter.id)}`}>
+                  {chapter.data.title}
+                </a>
+                <span class="chapter-status">
+                  {CHAPTER_STATUS_LABELS[chapter.data.status]}
+                </span>
+              </li>
+            ))}
+          </ol>
+        )
+      }
+    </section>
+  </main>
+</Base>
+
+<style>
+  .shelf-name {
+    font-size: var(--text-sm);
+    color: var(--flame);
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.08em;
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    margin-top: var(--space-xs);
+  }
+
+  .meta {
+    margin-top: var(--space-sm);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs) var(--space-md);
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+  }
+
+  .status {
+    color: var(--flame);
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.06em;
+  }
+
+  .synopsis {
+    margin-top: var(--space-lg);
+    font-size: var(--text-lg);
+    line-height: 1.5;
+    color: var(--ink-soft);
+    max-width: var(--measure);
+  }
+
+  .about {
+    margin-top: var(--space-lg);
+    max-width: var(--measure);
+  }
+
+  .chapters {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--line);
+  }
+
+  .chapters h2 {
+    font-size: var(--text-xl);
+  }
+
+  .empty {
+    margin-top: var(--space-md);
+    color: var(--ink-soft);
+    max-width: var(--measure);
+  }
+
+  ol {
+    margin: var(--space-lg) 0 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: chapter;
+    display: grid;
+    gap: var(--space-md);
+  }
+
+  ol li {
+    counter-increment: chapter;
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-sm);
+  }
+
+  ol li::before {
+    content: counter(chapter, decimal-leading-zero);
+    font-family: var(--font-display);
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  ol a {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .chapter-status {
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.06em;
+  }
+</style>

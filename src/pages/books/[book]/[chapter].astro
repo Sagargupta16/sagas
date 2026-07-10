@@ -1,0 +1,172 @@
+---
+import { getCollection, getEntry, render } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import {
+  CHAPTER_STATUS_LABELS,
+  bookSlug,
+  chapterSlug,
+  formatDate,
+} from '../../../lib/shelf';
+
+export async function getStaticPaths() {
+  const chapters = await getCollection('chapters');
+  return chapters.map((chapter) => ({
+    params: { book: bookSlug(chapter.id), chapter: chapterSlug(chapter.id) },
+    props: { chapter },
+  }));
+}
+
+const { chapter } = Astro.props;
+const slug = bookSlug(chapter.id);
+const book = await getEntry('books', `${slug}/book`);
+if (!book) throw new Error(`No book.md found for chapter ${chapter.id}`);
+
+const siblings = (
+  await getCollection('chapters', (c) => bookSlug(c.id) === slug)
+).sort((a, b) => a.data.order - b.data.order);
+const index = siblings.findIndex((c) => c.id === chapter.id);
+const prev = index > 0 ? siblings[index - 1] : undefined;
+const next = index < siblings.length - 1 ? siblings[index + 1] : undefined;
+
+const { Content } = await render(chapter);
+---
+
+<Base
+  title={`${chapter.data.title} -- ${book.data.title} -- sagas`}
+  description={`Chapter ${chapter.data.order} of ${book.data.title}.`}
+>
+  <main>
+    <header class="chapter-head rise">
+      <p class="crumb">
+        <a href={`/books/${slug}`}>{book.data.title}</a>
+      </p>
+      <h1>{chapter.data.title}</h1>
+      <p class="meta">
+        <span class="status">{CHAPTER_STATUS_LABELS[chapter.data.status]}</span>
+        {
+          chapter.data.publishedOn && (
+            <span>{formatDate(chapter.data.publishedOn)}</span>
+          )
+        }
+      </p>
+    </header>
+
+    <article class="prose rise">
+      <Content />
+    </article>
+
+    <nav class="pager rise">
+      {
+        prev ? (
+          <a href={`/books/${slug}/${chapterSlug(prev.id)}`} class="prev">
+            &larr; {prev.data.title}
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        next && (
+          <a href={`/books/${slug}/${chapterSlug(next.id)}`} class="next">
+            {next.data.title} &rarr;
+          </a>
+        )
+      }
+    </nav>
+  </main>
+</Base>
+
+<style>
+  .chapter-head {
+    margin-bottom: var(--space-2xl);
+  }
+
+  .crumb {
+    font-size: var(--text-sm);
+  }
+
+  .crumb a {
+    color: var(--flame);
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    margin-top: var(--space-xs);
+  }
+
+  .meta {
+    margin-top: var(--space-sm);
+    display: flex;
+    gap: var(--space-md);
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+  }
+
+  .status {
+    color: var(--flame);
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.06em;
+  }
+
+  .prose {
+    max-width: var(--measure);
+    font-size: var(--text-body);
+    line-height: 1.7;
+  }
+
+  .prose :global(p) {
+    margin-block: 0 var(--space-lg);
+  }
+
+  .prose :global(p:first-of-type)::first-letter {
+    font-family: var(--font-display);
+    font-size: 3.2em;
+    font-weight: 600;
+    float: left;
+    line-height: 0.85;
+    padding-right: 0.08em;
+    color: var(--flame);
+  }
+
+  .prose :global(h2),
+  .prose :global(h3) {
+    margin-block: var(--space-xl) var(--space-md);
+  }
+
+  .prose :global(blockquote) {
+    margin: var(--space-lg) 0;
+    padding-left: var(--space-lg);
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+
+  .prose :global(hr) {
+    border: none;
+    text-align: center;
+    margin-block: var(--space-xl);
+  }
+
+  .prose :global(hr)::after {
+    content: '* * *';
+    color: var(--ink-soft);
+    letter-spacing: 0.5em;
+  }
+
+  .pager {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-lg);
+    font-family: var(--font-display);
+  }
+
+  .pager .next {
+    text-align: right;
+    margin-left: auto;
+  }
+</style>

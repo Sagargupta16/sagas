@@ -1,0 +1,79 @@
+---
+import '@fontsource-variable/eczar/index.css';
+import '@fontsource-variable/literata/index.css';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="sagas"
+      href={new URL('rss.xml', Astro.site)}
+    />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="/" class="wordmark">sagas</a>
+      </nav>
+    </header>
+    <slot />
+    <footer>
+      <p>
+        Written in the open by <a href="https://sagargupta.online"
+          >Sagar Gupta</a
+        >. Fan fiction is free and non-commercial, always.
+      </p>
+    </footer>
+  </body>
+</html>
+
+<style>
+  header {
+    border-bottom: 1px solid var(--line);
+  }
+
+  nav {
+    width: min(100% - 2 * var(--space-lg), 44rem);
+    margin-inline: auto;
+    padding-block: var(--space-md);
+  }
+
+  .wordmark {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 700;
+    color: var(--ink);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+
+  footer {
+    border-top: 1px solid var(--line);
+    margin-top: auto;
+  }
+
+  footer p {
+    width: min(100% - 2 * var(--space-lg), 44rem);
+    margin-inline: auto;
+    padding-block: var(--space-lg);
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+  }
+</style>
