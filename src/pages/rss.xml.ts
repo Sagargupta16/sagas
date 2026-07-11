@@ -1,7 +1,7 @@
 import rss from '@astrojs/rss';
 import { getCollection } from 'astro:content';
 import type { APIContext } from 'astro';
-import { bookSlug, chapterSlug } from '../lib/shelf';
+import { bookSlug, chapterSlug, withBase } from '../lib/shelf';
 
 export async function GET(context: APIContext) {
   const books = await getCollection('books');
@@ -16,7 +16,8 @@ export async function GET(context: APIContext) {
     title: 'sagas',
     description:
       'A living library of unfinished books. New chapters as they land.',
-    site: context.site!,
+    site: new URL(withBase('/'), context.site!).href,
+    trailingSlash: false,
     items: chapters
       .sort(
         (a, b) => b.data.publishedOn!.valueOf() - a.data.publishedOn!.valueOf(),
@@ -26,7 +27,7 @@ export async function GET(context: APIContext) {
         return {
           title: `${titleOf(slug)}: ${chapter.data.title}`,
           pubDate: chapter.data.publishedOn!,
-          link: `/books/${slug}/${chapterSlug(chapter.id)}`,
+          link: withBase(`/books/${slug}/${chapterSlug(chapter.id)}`),
         };
       }),
   });

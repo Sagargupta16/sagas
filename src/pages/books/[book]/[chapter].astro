@@ -6,6 +6,7 @@ import {
   bookSlug,
   chapterSlug,
   formatDate,
+  withBase,
 } from '../../../lib/shelf';
 
 export async function getStaticPaths() {
@@ -38,7 +39,7 @@ const { Content } = await render(chapter);
   <main>
     <header class="chapter-head rise">
       <p class="crumb">
-        <a href={`/books/${slug}`}>{book.data.title}</a>
+        <a href={withBase(`/books/${slug}`)}>{book.data.title}</a>
       </p>
       <h1>{chapter.data.title}</h1>
       <p class="meta">
@@ -58,7 +59,10 @@ const { Content } = await render(chapter);
     <nav class="pager rise">
       {
         prev ? (
-          <a href={`/books/${slug}/${chapterSlug(prev.id)}`} class="prev">
+          <a
+            href={withBase(`/books/${slug}/${chapterSlug(prev.id)}`)}
+            class="prev"
+          >
             &larr; {prev.data.title}
           </a>
         ) : (
@@ -67,7 +71,10 @@ const { Content } = await render(chapter);
       }
       {
         next && (
-          <a href={`/books/${slug}/${chapterSlug(next.id)}`} class="next">
+          <a
+            href={withBase(`/books/${slug}/${chapterSlug(next.id)}`)}
+            class="next"
+          >
             {next.data.title} &rarr;
           </a>
         )

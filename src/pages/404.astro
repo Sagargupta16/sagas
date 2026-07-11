@@ -1,12 +1,16 @@
 ---
 import Base from '../layouts/Base.astro';
+import { withBase } from '../lib/shelf';
 ---
 
 <Base title="Page not found -- sagas" description="This page does not exist.">
   <main>
     <section class="rise">
       <h1>Not every page is written yet.</h1>
-      <p>This one does not exist. <a href="/">Back to the shelves</a>.</p>
+      <p>
+        This one does not exist. <a href={withBase('/')}>Back to the shelves</a
+        >.
+      </p>
     </section>
   </main>
 </Base>
