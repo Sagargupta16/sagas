@@ -6,6 +6,7 @@ import {
   SHELVES,
   STATUS_LABELS,
   bookSlug,
+  chapterSlug,
   formatDate,
   withBase,
   type Shelf,
@@ -16,6 +17,23 @@ const chapters = await getCollection('chapters');
 
 const chapterCount = (slug: string) =>
   chapters.filter((c) => bookSlug(c.id) === slug).length;
+
+// Lightweight map for the client-side "Continue reading" banner:
+// book slug -> { title, chapters: [{ id, title, href }] }.
+const readingMap = Object.fromEntries(
+  books.map((b) => {
+    const slug = bookSlug(b.id);
+    const chs = chapters
+      .filter((c) => bookSlug(c.id) === slug)
+      .sort((a, c) => a.data.order - c.data.order)
+      .map((c) => ({
+        id: chapterSlug(c.id),
+        title: c.data.title,
+        href: withBase(`/books/${slug}/${chapterSlug(c.id)}`),
+      }));
+    return [slug, { title: b.data.title, chapters: chs }];
+  }),
+);
 
 const shelves = (Object.keys(SHELVES) as Shelf[]).map((shelf) => ({
   shelf,
@@ -47,6 +65,48 @@ const totalChapters = chapters.length;
         <span><strong>3</strong> shelves</span>
       </p>
     </section>
+
+    <a class="continue glass" data-continue hidden href="#">
+      <span class="continue-eyebrow">Continue reading</span>
+      <span class="continue-title" data-continue-title></span>
+      <span class="continue-meta" data-continue-meta></span>
+    </a>
+
+    <script type="application/json" data-reading-map set:html={JSON.stringify(readingMap)}
+    ></script>
+    <script>
+      const el = document.querySelector('[data-continue]') as HTMLAnchorElement | null;
+      const mapEl = document.querySelector('[data-reading-map]');
+      if (el && mapEl) {
+        let map: Record<string, { title: string; chapters: { id: string; title: string; href: string }[] }> = {};
+        try {
+          map = JSON.parse(mapEl.textContent || '{}');
+        } catch {}
+        // find the most recently-read book by its saved timestamp
+        let best: { href: string; book: string; chapter: string; pct: number; at: number } | null = null;
+        for (const slug of Object.keys(map)) {
+          let data: any = {};
+          try {
+            data = JSON.parse(localStorage.getItem('sagas:progress:' + slug) || '{}');
+          } catch {}
+          const lastId = data._last;
+          if (!lastId) continue;
+          const ch = map[slug].chapters.find((c) => c.id === lastId);
+          const rec = data[lastId];
+          if (!ch || !rec) continue;
+          if (!best || rec.at > best.at) {
+            best = { href: ch.href, book: map[slug].title, chapter: ch.title, pct: rec.pct || 0, at: rec.at };
+          }
+        }
+        if (best) {
+          el.href = best.href;
+          (el.querySelector('[data-continue-title]') as HTMLElement).textContent = best.chapter;
+          (el.querySelector('[data-continue-meta]') as HTMLElement).textContent =
+            best.book + (best.pct > 0 ? ' -- ' + best.pct + '% in' : '');
+          el.removeAttribute('hidden');
+        }
+      }
+    </script>
 
     {
       shelves.map(({ shelf, name, blurb, books }) => (
@@ -141,6 +201,42 @@ const totalChapters = chapters.length;
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-md) var(--space-lg);
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+  }
+
+  .continue {
+    display: grid;
+    gap: var(--space-2xs);
+    margin-bottom: var(--space-2xl);
+    padding: var(--space-md) var(--space-lg);
+    text-decoration: none;
+    color: var(--ink);
+    transition:
+      border-color var(--duration-base) var(--ease-out),
+      transform var(--duration-base) var(--ease-out);
+  }
+
+  .continue:hover {
+    border-color: var(--flame-dim);
+    transform: translateY(-2px);
+  }
+
+  .continue-eyebrow {
+    font-size: var(--text-sm);
+    color: var(--flame);
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+  }
+
+  .continue-title {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 600;
+  }
+
+  .continue-meta {
     font-size: var(--text-sm);
     color: var(--ink-soft);
   }

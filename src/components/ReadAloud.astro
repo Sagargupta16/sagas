@@ -1,26 +1,78 @@
 ---
 // Read-aloud (text-to-speech) for a chapter. Uses the browser's built-in
 // Web Speech API -- no dependencies, no network, works offline. Reads the
-// paragraphs inside `.prose` one at a time, highlighting the active one and
-// keeping it in view. Progressive enhancement: hidden if the API is absent.
+// blocks inside `.prose` one at a time, highlighting the active one. Adds a
+// voice picker, speed control, sleep timer, cross-chapter continuous play,
+// and lock-screen (Media Session) controls. Progressive enhancement: the
+// whole control hides itself if the Speech API is unavailable.
+interface Props {
+  bookTitle: string;
+  chapterTitle: string;
+  nextHref?: string;
+}
+const { bookTitle, chapterTitle, nextHref } = Astro.props;
 ---
 
-<div class="read-aloud glass" data-read-aloud hidden>
-  <button type="button" class="ra-play" data-ra-toggle aria-label="Read this chapter aloud">
-    <svg class="ra-icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M8 5v14l11-7z"></path>
-    </svg>
-    <svg class="ra-icon-pause is-hidden" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M6 5h4v14H6zM14 5h4v14h-4z"></path>
-    </svg>
-    <span class="ra-label" data-ra-label>Read aloud</span>
-  </button>
-  <button type="button" class="ra-stop" data-ra-stop aria-label="Stop reading" hidden>
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M6 6h12v12H6z"></path>
-    </svg>
-  </button>
-  <span class="ra-hint" data-ra-hint>Listen with your browser's voice</span>
+<div
+  class="read-aloud glass"
+  data-read-aloud
+  data-book-title={bookTitle}
+  data-chapter-title={chapterTitle}
+  data-next={nextHref ?? ''}
+  hidden
+>
+  <div class="ra-main">
+    <button type="button" class="ra-play" data-ra-toggle aria-label="Read this chapter aloud">
+      <svg class="ra-icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M8 5v14l11-7z"></path>
+      </svg>
+      <svg class="ra-icon-pause is-hidden" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M6 5h4v14H6zM14 5h4v14h-4z"></path>
+      </svg>
+      <span class="ra-label" data-ra-label>Read aloud</span>
+    </button>
+    <button type="button" class="ra-icon-btn ra-stop" data-ra-stop aria-label="Stop reading" hidden>
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M6 6h12v12H6z"></path>
+      </svg>
+    </button>
+    <button
+      type="button"
+      class="ra-icon-btn ra-settings"
+      data-ra-settings
+      aria-label="Playback settings"
+      aria-expanded="false"
+    >
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M3 7h11a3 3 0 0 1 6 0h1v2h-1a3 3 0 0 1-6 0H3zM3 15h5a3 3 0 0 1 6 0h7v2h-7a3 3 0 0 1-6 0H3z"></path>
+      </svg>
+    </button>
+  </div>
+
+  <div class="ra-panel" data-ra-panel hidden>
+    <label class="ra-field">
+      <span>Voice</span>
+      <select data-ra-voice></select>
+    </label>
+    <label class="ra-field">
+      <span>Speed <b data-ra-rate-label>1.0x</b></span>
+      <input type="range" data-ra-rate min="0.6" max="1.8" step="0.1" value="1" />
+    </label>
+    <label class="ra-field">
+      <span>Sleep timer</span>
+      <select data-ra-sleep>
+        <option value="0">Off</option>
+        <option value="end">End of chapter</option>
+        <option value="10">10 minutes</option>
+        <option value="20">20 minutes</option>
+        <option value="30">30 minutes</option>
+      </select>
+    </label>
+    <label class="ra-check">
+      <input type="checkbox" data-ra-continuous checked />
+      <span>Continue to next chapter</span>
+    </label>
+  </div>
 </div>
 
 <script>
@@ -29,20 +81,70 @@
   const prose = document.querySelector<HTMLElement>('.prose');
   if (synth && root && prose) {
     root.hidden = false;
-    const toggle = root.querySelector<HTMLButtonElement>('[data-ra-toggle]')!;
-    const stopBtn = root.querySelector<HTMLButtonElement>('[data-ra-stop]')!;
-    const label = root.querySelector<HTMLElement>('[data-ra-label]')!;
-    const hint = root.querySelector<HTMLElement>('[data-ra-hint]')!;
-    const iconPlay = root.querySelector<SVGElement>('.ra-icon-play')!;
-    const iconPause = root.querySelector<SVGElement>('.ra-icon-pause')!;
+    const $ = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const toggle = $<HTMLButtonElement>('[data-ra-toggle]');
+    const stopBtn = $<HTMLButtonElement>('[data-ra-stop]');
+    const settingsBtn = $<HTMLButtonElement>('[data-ra-settings]');
+    const panel = $<HTMLElement>('[data-ra-panel]');
+    const label = $<HTMLElement>('[data-ra-label]');
+    const iconPlay = $<SVGElement>('.ra-icon-play');
+    const iconPause = $<SVGElement>('.ra-icon-pause');
+    const voiceSel = $<HTMLSelectElement>('[data-ra-voice]');
+    const rateInput = $<HTMLInputElement>('[data-ra-rate]');
+    const rateLabel = $<HTMLElement>('[data-ra-rate-label]');
+    const sleepSel = $<HTMLSelectElement>('[data-ra-sleep]');
+    const continuous = $<HTMLInputElement>('[data-ra-continuous]');
 
-    // Read paragraphs, headings, and blockquotes in document order.
+    const bookTitle = root.dataset.bookTitle || 'sagas';
+    const chapterTitle = root.dataset.chapterTitle || '';
+    const nextHref = root.dataset.next || '';
+
     const blocks = Array.from(
       prose.querySelectorAll<HTMLElement>('p, h2, h3, blockquote'),
     ).filter((el) => (el.textContent ?? '').trim().length > 0);
 
     let index = 0;
     let playing = false;
+    let sleepAt = 0; // timestamp; 0 = off
+    let stopAtChapterEnd = false;
+
+    // --- persisted settings ---
+    const PREF = 'sagas:tts';
+    const loadPref = () => {
+      try {
+        return JSON.parse(localStorage.getItem(PREF) || '{}');
+      } catch {
+        return {};
+      }
+    };
+    const savePref = (patch: Record<string, unknown>) => {
+      localStorage.setItem(PREF, JSON.stringify({ ...loadPref(), ...patch }));
+    };
+    const pref = loadPref();
+    if (pref.rate) {
+      rateInput.value = String(pref.rate);
+      rateLabel.textContent = Number(pref.rate).toFixed(1) + 'x';
+    }
+    if (typeof pref.continuous === 'boolean') continuous.checked = pref.continuous;
+
+    // --- voices (populate async; some browsers fire voiceschanged) ---
+    const fillVoices = () => {
+      const voices = synth.getVoices().filter((v) => v.lang.startsWith('en'));
+      voiceSel.innerHTML = '';
+      voices.forEach((v) => {
+        const o = document.createElement('option');
+        o.value = v.name;
+        o.textContent = `${v.name} (${v.lang})`;
+        voiceSel.appendChild(o);
+      });
+      if (pref.voice && voices.some((v) => v.name === pref.voice)) {
+        voiceSel.value = pref.voice;
+      }
+    };
+    fillVoices();
+    synth.addEventListener('voiceschanged', fillVoices);
+    const currentVoice = () =>
+      synth.getVoices().find((v) => v.name === voiceSel.value) || null;
 
     const setPlayingUI = (on: boolean) => {
       playing = on;
@@ -51,11 +153,13 @@
       label.textContent = on ? 'Pause' : index > 0 ? 'Resume' : 'Read aloud';
       stopBtn.hidden = !on && index === 0;
       toggle.setAttribute('aria-pressed', String(on));
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = on ? 'playing' : 'paused';
+      }
     };
 
-    const clearHighlight = () => {
+    const clearHighlight = () =>
       blocks.forEach((b) => b.removeAttribute('data-reading'));
-    };
 
     const highlight = (i: number) => {
       clearHighlight();
@@ -65,41 +169,60 @@
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
+    const finish = () => {
+      // chapter done: auto-advance if allowed and a next chapter exists
+      if (!stopAtChapterEnd && continuous.checked && nextHref) {
+        savePref({ autoplay: true });
+        window.location.href = nextHref;
+        return;
+      }
+      stop();
+    };
+
     const speakFrom = (i: number) => {
       if (i >= blocks.length) {
+        finish();
+        return;
+      }
+      if (sleepAt && Date.now() >= sleepAt) {
         stop();
         return;
       }
       index = i;
       highlight(i);
       const u = new SpeechSynthesisUtterance(blocks[i].textContent ?? '');
-      u.rate = 1;
-      u.pitch = 1;
+      u.rate = Number(rateInput.value) || 1;
+      const v = currentVoice();
+      if (v) u.voice = v;
       u.onend = () => {
         if (playing) speakFrom(i + 1);
       };
       synth.speak(u);
     };
 
+    const start = () => {
+      synth.cancel();
+      setPlayingUI(true);
+      speakFrom(index);
+    };
+
     const stop = () => {
       synth.cancel();
       clearHighlight();
       index = 0;
+      sleepAt = 0;
+      stopAtChapterEnd = false;
       setPlayingUI(false);
-      hint.hidden = false;
     };
 
     toggle.addEventListener('click', () => {
-      hint.hidden = true;
       if (!playing) {
-        // starting fresh or resuming
         if (synth.paused && synth.speaking) {
           synth.resume();
+          setPlayingUI(true);
         } else {
-          synth.cancel();
-          speakFrom(index);
+          start();
         }
-        setPlayingUI(true);
       } else {
         synth.pause();
         setPlayingUI(false);
@@ -107,19 +230,90 @@
     });
 
     stopBtn.addEventListener('click', stop);
-    // Cancel any speech if the reader leaves the page.
+
+    settingsBtn.addEventListener('click', () => {
+      const open = panel.hasAttribute('hidden');
+      panel.toggleAttribute('hidden', !open);
+      settingsBtn.setAttribute('aria-expanded', String(open));
+    });
+
+    rateInput.addEventListener('input', () => {
+      rateLabel.textContent = Number(rateInput.value).toFixed(1) + 'x';
+    });
+    rateInput.addEventListener('change', () => {
+      savePref({ rate: Number(rateInput.value) });
+      if (playing) start(); // apply new rate immediately from current block
+    });
+    voiceSel.addEventListener('change', () => {
+      savePref({ voice: voiceSel.value });
+      if (playing) start();
+    });
+    continuous.addEventListener('change', () =>
+      savePref({ continuous: continuous.checked }),
+    );
+    sleepSel.addEventListener('change', () => {
+      const v = sleepSel.value;
+      if (v === '0') {
+        sleepAt = 0;
+        stopAtChapterEnd = false;
+      } else if (v === 'end') {
+        stopAtChapterEnd = true;
+        sleepAt = 0;
+      } else {
+        stopAtChapterEnd = false;
+        sleepAt = Date.now() + Number(v) * 60_000;
+      }
+    });
+
+    // --- lock-screen / hardware media controls ---
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: chapterTitle,
+        artist: bookTitle,
+        album: 'sagas',
+      });
+      const ms = navigator.mediaSession;
+      ms.setActionHandler('play', () => {
+        if (synth.paused && synth.speaking) {
+          synth.resume();
+          setPlayingUI(true);
+        } else start();
+      });
+      ms.setActionHandler('pause', () => {
+        synth.pause();
+        setPlayingUI(false);
+      });
+      ms.setActionHandler('stop', stop);
+      ms.setActionHandler('nexttrack', () => {
+        if (nextHref) window.location.href = nextHref;
+      });
+    }
+
+    // Auto-start if we arrived here from a continuous-play advance.
+    if (loadPref().autoplay) {
+      savePref({ autoplay: false });
+      // a user-gesture-free start works because navigation was itself a gesture
+      start();
+    }
+
     window.addEventListener('pagehide', () => synth.cancel());
   }
 </script>
 
 <style>
   .read-aloud {
-    display: flex;
-    align-items: center;
+    display: grid;
     gap: var(--space-sm);
     padding: var(--space-xs) var(--space-sm);
     margin-block: var(--space-lg);
     width: fit-content;
+    max-width: 100%;
+  }
+
+  .ra-main {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
   }
 
   .read-aloud button {
@@ -153,22 +347,63 @@
     display: none;
   }
 
-  .ra-stop {
+  .ra-icon-btn {
     color: var(--ink-soft);
   }
 
-  .ra-stop:hover {
+  .ra-icon-btn:hover {
     color: var(--flame);
   }
 
-  .ra-hint {
-    font-size: var(--text-sm);
-    color: var(--ink-faint);
+  .ra-settings {
+    margin-left: auto;
   }
 
-  @media (max-width: 30rem) {
-    .ra-hint {
-      display: none;
-    }
+  .ra-panel {
+    display: grid;
+    gap: var(--space-sm);
+    padding-top: var(--space-xs);
+    border-top: 1px solid var(--line-soft);
+    min-width: min(20rem, 70vw);
+  }
+
+  .ra-field {
+    display: grid;
+    gap: var(--space-2xs);
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+  }
+
+  .ra-field b {
+    color: var(--flame);
+    font-weight: 600;
+  }
+
+  .ra-field select,
+  .ra-field input[type='range'] {
+    width: 100%;
+    font: inherit;
+    accent-color: var(--flame);
+  }
+
+  .ra-field select {
+    padding: 0.4em 0.6em;
+    background: var(--surface-sunken);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+  }
+
+  .ra-check {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+
+  .ra-check input {
+    accent-color: var(--flame);
   }
 </style>
