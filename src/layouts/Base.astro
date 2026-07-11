@@ -61,6 +61,20 @@ const jsonLd = {
       type="application/ld+json"
       set:html={JSON.stringify(jsonLd)}
     />
+
+    {/* apply saved reader preferences before first paint (no FOUC) */}
+    <script is:inline>
+      (function () {
+        try {
+          var p = JSON.parse(localStorage.getItem('sagas:prefs') || '{}');
+          var r = document.documentElement;
+          if (p.theme) r.dataset.theme = p.theme;
+          if (p.font) r.dataset.readerFont = p.font;
+          if (p.size) r.style.setProperty('--reader-size', p.size);
+          if (p.leading) r.style.setProperty('--reader-leading', p.leading);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <header>

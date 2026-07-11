@@ -12,6 +12,7 @@ import {
   readingMinutes,
   withBase,
 } from '../../../lib/shelf';
+import { writingHistory } from '../../../lib/git-history';
 
 export async function getStaticPaths() {
   const chapters = await getCollection('chapters');
@@ -35,6 +36,9 @@ const next = index < siblings.length - 1 ? siblings[index + 1] : undefined;
 
 const { Content } = await render(chapter);
 const minutes = readingMinutes(chapter.body);
+const history = chapter.filePath
+  ? writingHistory(chapter.filePath)
+  : { firstDrafted: null, lastRevised: null, revisions: 0 };
 ---
 
 <Base
@@ -43,7 +47,13 @@ const minutes = readingMinutes(chapter.body);
   ogType="article"
 >
   <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
-  <main class="read">
+  <main
+    class="read"
+    data-book={slug}
+    data-chapter={chapterSlug(chapter.id)}
+    data-prev={prev ? withBase(`/books/${slug}/${chapterSlug(prev.id)}`) : ''}
+    data-next={next ? withBase(`/books/${slug}/${chapterSlug(next.id)}`) : ''}
+  >
     <header class="chapter-head rise">
       <p class="eyebrow crumb">
         <a href={withBase('/')} class="back">Library</a>
@@ -73,12 +83,101 @@ const minutes = readingMinutes(chapter.body);
           <PdfReader url={chapter.data.pdfUrl} title={chapter.data.title} />
         )
       }
-      <ReadAloud />
+      <ReadAloud
+        bookTitle={book.data.title}
+        chapterTitle={chapter.data.title}
+        nextHref={next ? withBase(`/books/${slug}/${chapterSlug(next.id)}`) : undefined}
+      />
+
+      <div class="reader-tools">
+        <button
+          type="button"
+          class="tool-btn"
+          data-prefs-toggle
+          aria-expanded="false"
+          aria-controls="reader-prefs"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+            <path d="M7 4h10v2H7zM5 9h14v2H5zM7 14h10v2H7zM9 19h6v2H9z"></path>
+          </svg>
+          Reading settings
+        </button>
+      </div>
+
+      <div id="reader-prefs" class="prefs-panel glass" hidden>
+        <div class="prefs-row">
+          <span class="prefs-label">Theme</span>
+          <div class="seg" data-pref="theme">
+            <button type="button" data-value="auto">Auto</button>
+            <button type="button" data-value="dark">Dark</button>
+            <button type="button" data-value="light">Light</button>
+            <button type="button" data-value="sepia">Sepia</button>
+          </div>
+        </div>
+        <div class="prefs-row">
+          <span class="prefs-label">Typeface</span>
+          <div class="seg" data-pref="font">
+            <button type="button" data-value="serif">Serif</button>
+            <button type="button" data-value="sans">Sans</button>
+            <button type="button" data-value="mono">Mono</button>
+          </div>
+        </div>
+        <div class="prefs-row">
+          <span class="prefs-label">Text size</span>
+          <div class="seg" data-pref="size">
+            <button type="button" data-value="0.95rem">A</button>
+            <button type="button" data-value="1.0625rem">A</button>
+            <button type="button" data-value="1.2rem">A</button>
+            <button type="button" data-value="1.35rem">A</button>
+          </div>
+        </div>
+        <div class="prefs-row">
+          <span class="prefs-label">Line spacing</span>
+          <div class="seg" data-pref="leading">
+            <button type="button" data-value="1.55">Tight</button>
+            <button type="button" data-value="1.75">Cozy</button>
+            <button type="button" data-value="2">Airy</button>
+          </div>
+        </div>
+        <button type="button" class="prefs-reset" data-prefs-reset>Reset to defaults</button>
+      </div>
     </header>
 
     <article class="prose rise">
       <Content />
     </article>
+
+    {
+      history.revisions > 0 && (
+        <aside class="writing-history rise">
+          <span class="wh-eyebrow">Written in the open</span>
+          <dl class="wh-stats">
+            {history.firstDrafted && (
+              <div>
+                <dt>First drafted</dt>
+                <dd>{formatDate(history.firstDrafted)}</dd>
+              </div>
+            )}
+            {history.lastRevised && (
+              <div>
+                <dt>Last revised</dt>
+                <dd>{formatDate(history.lastRevised)}</dd>
+              </div>
+            )}
+            <div>
+              <dt>Revisions</dt>
+              <dd>
+                {history.revisions} commit{history.revisions === 1 ? '' : 's'}
+              </dd>
+            </div>
+          </dl>
+          <p class="wh-note">
+            Every edit to this chapter is public. This is the git history, not a
+            marketing claim.
+          </p>
+        </aside>
+      )
+    }
 
     <nav class="pager rise">
       {
@@ -110,22 +209,189 @@ const minutes = readingMinutes(chapter.body);
 </Base>
 
 <script>
-  // Reading progress -- the one client script; it directly serves reading.
+  const main = document.querySelector('main.read') as HTMLElement | null;
   const bar = document.getElementById('progress-bar');
-  const article = document.querySelector('.prose');
-  if (bar && article) {
+  const article = document.querySelector('.prose') as HTMLElement | null;
+  const root = document.documentElement;
+
+  // --- Reading progress: live bar + persist scroll % per chapter ---
+  if (bar && article && main) {
+    const book = main.dataset.book || '';
+    const chapter = main.dataset.chapter || '';
+    const key = 'sagas:progress';
+    const readKey = (b: string) => `${key}:${b}`;
+
+    const load = (): Record<string, any> => {
+      try {
+        return JSON.parse(localStorage.getItem(readKey(book)) || '{}');
+      } catch {
+        return {};
+      }
+    };
+    const save = (pct: number) => {
+      try {
+        const data = load();
+        data[chapter] = { pct: Math.round(pct), at: Date.now() };
+        data._last = chapter;
+        localStorage.setItem(readKey(book), JSON.stringify(data));
+      } catch {}
+    };
+
+    let ticking = false;
     const update = () => {
-      const el = article as HTMLElement;
-      const start = el.offsetTop;
-      const total = el.offsetHeight - window.innerHeight;
+      const start = article.offsetTop;
+      const total = article.offsetHeight - window.innerHeight;
       const scrolled = window.scrollY - start;
       const pct =
         total > 0 ? Math.min(100, Math.max(0, (scrolled / total) * 100)) : 0;
       bar.style.width = pct + '%';
+      save(pct);
+      ticking = false;
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
     };
     update();
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+
+    // Offer to resume if we have a saved position for this chapter.
+    const saved = load()[chapter];
+    if (saved && saved.pct > 5 && saved.pct < 95) {
+      const y =
+        article.offsetTop +
+        ((article.offsetHeight - window.innerHeight) * saved.pct) / 100;
+      const resume = document.createElement('button');
+      resume.className = 'resume-toast glass';
+      resume.textContent = `Resume where you left off (${saved.pct}%)`;
+      resume.addEventListener('click', () => {
+        window.scrollTo({ top: y, behavior: 'smooth' });
+        resume.remove();
+      });
+      document.body.appendChild(resume);
+      setTimeout(() => resume.remove(), 8000);
+    }
+  }
+
+  // --- Keyboard + swipe chapter navigation ---
+  if (main) {
+    const go = (url: string | undefined) => {
+      if (url) window.location.href = url;
+    };
+    document.addEventListener('keydown', (e) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.metaKey || e.ctrlKey) return;
+      if (e.key === 'ArrowRight' || e.key === 'l')
+        go(main.dataset.next || undefined);
+      if (e.key === 'ArrowLeft' || e.key === 'h')
+        go(main.dataset.prev || undefined);
+    });
+    let sx = 0,
+      sy = 0;
+    document.addEventListener(
+      'touchstart',
+      (e) => {
+        sx = e.changedTouches[0].screenX;
+        sy = e.changedTouches[0].screenY;
+      },
+      { passive: true },
+    );
+    document.addEventListener(
+      'touchend',
+      (e) => {
+        const dx = e.changedTouches[0].screenX - sx;
+        const dy = e.changedTouches[0].screenY - sy;
+        if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 2) {
+          go((dx < 0 ? main.dataset.next : main.dataset.prev) || undefined);
+        }
+      },
+      { passive: true },
+    );
+  }
+
+  // --- Reader preferences panel ---
+  const PREFS_KEY = 'sagas:prefs';
+  const readPrefs = (): Record<string, string> => {
+    try {
+      return JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
+    } catch {
+      return {};
+    }
+  };
+  const applyPref = (pref: string, value: string) => {
+    if (pref === 'theme') {
+      if (value === 'auto') delete root.dataset.theme;
+      else root.dataset.theme = value;
+    } else if (pref === 'font') {
+      if (value === 'serif') delete root.dataset.readerFont;
+      else root.dataset.readerFont = value;
+    } else if (pref === 'size') {
+      root.style.setProperty('--reader-size', value);
+    } else if (pref === 'leading') {
+      root.style.setProperty('--reader-leading', value);
+    }
+  };
+  const savePref = (pref: string, value: string) => {
+    const p = readPrefs();
+    // store 'theme'/'font' as the raw value; size/leading map to their vars
+    if (pref === 'theme') p.theme = value === 'auto' ? '' : value;
+    else if (pref === 'font') p.font = value === 'serif' ? '' : value;
+    else if (pref === 'size') p.size = value;
+    else if (pref === 'leading') p.leading = value;
+    localStorage.setItem(PREFS_KEY, JSON.stringify(p));
+  };
+
+  const panel = document.getElementById('reader-prefs');
+  const toggle = document.querySelector('[data-prefs-toggle]');
+  if (panel && toggle) {
+    const markActive = () => {
+      const cur = readPrefs();
+      panel.querySelectorAll<HTMLElement>('.seg').forEach((seg) => {
+        const pref = seg.dataset.pref!;
+        let active: string;
+        if (pref === 'theme') active = cur.theme || 'auto';
+        else if (pref === 'font') active = cur.font || 'serif';
+        else if (pref === 'size') active = cur.size || '1.0625rem';
+        else active = cur.leading || '1.75';
+        seg.querySelectorAll<HTMLButtonElement>('button').forEach((b) => {
+          b.setAttribute(
+            'aria-pressed',
+            String(b.dataset.value === active),
+          );
+        });
+      });
+    };
+    markActive();
+
+    toggle.addEventListener('click', () => {
+      const open = panel.hasAttribute('hidden');
+      if (open) panel.removeAttribute('hidden');
+      else panel.setAttribute('hidden', '');
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+
+    panel.querySelectorAll<HTMLElement>('.seg').forEach((seg) => {
+      const pref = seg.dataset.pref!;
+      seg.querySelectorAll<HTMLButtonElement>('button').forEach((b) => {
+        b.addEventListener('click', () => {
+          applyPref(pref, b.dataset.value!);
+          savePref(pref, b.dataset.value!);
+          markActive();
+        });
+      });
+    });
+
+    panel.querySelector('[data-prefs-reset]')?.addEventListener('click', () => {
+      localStorage.removeItem(PREFS_KEY);
+      delete root.dataset.theme;
+      delete root.dataset.readerFont;
+      root.style.removeProperty('--reader-size');
+      root.style.removeProperty('--reader-leading');
+      markActive();
+    });
   }
 </script>
 
@@ -139,6 +405,128 @@ const minutes = readingMinutes(chapter.body);
     z-index: 20;
     background: transparent;
     pointer-events: none;
+  }
+
+  /* reader tools + preferences panel */
+  .reader-tools {
+    margin-top: var(--space-md);
+  }
+
+  .tool-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    font: inherit;
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.35em 0.8em;
+    cursor: pointer;
+    transition:
+      color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out);
+  }
+
+  .tool-btn:hover {
+    color: var(--flame);
+    border-color: var(--flame-dim);
+  }
+
+  .tool-btn svg {
+    color: var(--flame);
+  }
+
+  .prefs-panel {
+    margin-top: var(--space-md);
+    padding: var(--space-md);
+    display: grid;
+    gap: var(--space-md);
+  }
+
+  .prefs-row {
+    display: grid;
+    gap: var(--space-xs);
+  }
+
+  .prefs-label {
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.06em;
+  }
+
+  .seg {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    background: var(--surface-sunken);
+    border: 1px solid var(--line-soft);
+    border-radius: 999px;
+    padding: 3px;
+    width: fit-content;
+  }
+
+  .seg button {
+    font: inherit;
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+    background: transparent;
+    border: none;
+    border-radius: 999px;
+    padding: 0.3em 0.85em;
+    cursor: pointer;
+    transition:
+      background var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+
+  .seg[data-pref='size'] button:nth-child(1) {
+    font-size: 0.8rem;
+  }
+  .seg[data-pref='size'] button:nth-child(3) {
+    font-size: 1.1rem;
+  }
+  .seg[data-pref='size'] button:nth-child(4) {
+    font-size: 1.25rem;
+  }
+
+  .seg button[aria-pressed='true'] {
+    background: var(--flame);
+    color: var(--surface);
+  }
+
+  .prefs-reset {
+    justify-self: start;
+    font: inherit;
+    font-size: var(--text-sm);
+    color: var(--ink-faint);
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .prefs-reset:hover {
+    color: var(--flame);
+  }
+
+  /* resume toast */
+  :global(.resume-toast) {
+    position: fixed;
+    left: 50%;
+    bottom: var(--space-lg);
+    transform: translateX(-50%);
+    z-index: 30;
+    padding: 0.7em 1.2em;
+    font: inherit;
+    font-size: var(--text-sm);
+    color: var(--ink);
+    cursor: pointer;
+    animation: rise var(--duration-slow) var(--ease-out);
   }
 
   .progress span {
@@ -188,8 +576,9 @@ const minutes = readingMinutes(chapter.body);
 
   .prose {
     max-width: var(--measure);
-    font-size: var(--text-body);
-    line-height: 1.7;
+    font-family: var(--reader-font);
+    font-size: var(--reader-size);
+    line-height: var(--reader-leading);
   }
 
   .prose :global(p) {
@@ -238,6 +627,54 @@ const minutes = readingMinutes(chapter.body);
     content: '* * *';
     color: var(--ink-soft);
     letter-spacing: 0.5em;
+  }
+
+  .writing-history {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--line);
+  }
+
+  .wh-eyebrow {
+    font-size: var(--text-sm);
+    color: var(--flame);
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+  }
+
+  .wh-stats {
+    margin: var(--space-md) 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-lg) var(--space-2xl);
+  }
+
+  .wh-stats div {
+    display: grid;
+    gap: 0.1em;
+  }
+
+  .wh-stats dt {
+    font-size: var(--text-sm);
+    color: var(--ink-faint);
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.06em;
+  }
+
+  .wh-stats dd {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .wh-note {
+    margin-top: var(--space-md);
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+    max-width: var(--measure);
   }
 
   .pager {
