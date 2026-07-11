@@ -23,6 +23,9 @@ const shelves = (Object.keys(SHELVES) as Shelf[]).map((shelf) => ({
     .filter((b) => b.data.shelf === shelf)
     .sort((a, b) => b.data.startedOn.valueOf() - a.data.startedOn.valueOf()),
 }));
+
+const totalBooks = books.length;
+const totalChapters = chapters.length;
 ---
 
 <Base
@@ -31,44 +34,68 @@ const shelves = (Object.keys(SHELVES) as Shelf[]).map((shelf) => ({
 >
   <main>
     <section class="hero rise">
+      <p class="eyebrow">Work in progress</p>
       <h1>A living library of unfinished books.</h1>
       <p class="lede">
         Original fantasy, fan fiction, and essays -- written in the open, one
         chapter at a time. Every draft is public. Every revision is honest.
+      </p>
+      <p class="stats">
+        <span><strong>{totalBooks}</strong> books taking shape</span>
+        <span><strong>{totalChapters}</strong> chapters written</span>
+        <span><strong>3</strong> shelves</span>
       </p>
     </section>
 
     {
       shelves.map(({ shelf, name, blurb, books }) => (
         <section class="shelf rise">
-          <h2>{name}</h2>
+          <div class="shelf-head">
+            <h2>{name}</h2>
+            <span class="count">{books.length}</span>
+          </div>
           <p class="blurb">{blurb}</p>
+
           <ul>
             {books.map((book) => {
               const slug = bookSlug(book.id);
               const count = chapterCount(slug);
               return (
                 <li>
-                  <a href={withBase(`/books/${slug}`)} class="book-title">
-                    {book.data.title}
-                  </a>
-                  <p class="synopsis">{book.data.synopsis}</p>
-                  <p class="meta">
-                    <span class:list={['status', book.data.status]}>
-                      {STATUS_LABELS[book.data.status]}
-                    </span>
-                    {count > 0 && (
-                      <span>
-                        {count} chapter{count === 1 ? '' : 's'}
+                  <a href={withBase(`/books/${slug}`)} class="entry">
+                    <span class="entry-top">
+                      <span class="book-title">{book.data.title}</span>
+                      <span class="pill" data-status={book.data.status}>
+                        {STATUS_LABELS[book.data.status]}
                       </span>
-                    )}
-                    {book.data.universe && <span>{book.data.universe}</span>}
-                    <span>since {formatDate(book.data.startedOn)}</span>
-                  </p>
+                    </span>
+                    <span class="synopsis">{book.data.synopsis}</span>
+                    <span class="meta">
+                      {count > 0 && (
+                        <span>
+                          {count} chapter{count === 1 ? '' : 's'}
+                        </span>
+                      )}
+                      {book.data.universe && <span>{book.data.universe}</span>}
+                      <span>since {formatDate(book.data.startedOn)}</span>
+                    </span>
+                  </a>
                 </li>
               );
             })}
+
+            <li aria-hidden="true">
+              <div class="entry ghost">
+                <span class="entry-top">
+                  <span class="skeleton skeleton-line title" />
+                  <span class="pill">in the works</span>
+                </span>
+                <span class="skeleton skeleton-line" style="width: 92%" />
+                <span class="skeleton skeleton-line" style="width: 70%" />
+              </div>
+            </li>
           </ul>
+
           {shelf === 'fanfic' && (
             <p class="note">
               Everything on this shelf is transformative fan work: free,
@@ -84,12 +111,13 @@ const shelves = (Object.keys(SHELVES) as Shelf[]).map((shelf) => ({
 
 <style>
   .hero {
-    margin-bottom: var(--space-3xl);
+    margin-block: var(--space-xl) var(--space-3xl);
   }
 
   .hero h1 {
     font-size: var(--text-2xl);
     max-width: 18ch;
+    margin-top: var(--space-xs);
   }
 
   .lede {
@@ -100,14 +128,44 @@ const shelves = (Object.keys(SHELVES) as Shelf[]).map((shelf) => ({
     max-width: 46ch;
   }
 
+  .stats {
+    margin-top: var(--space-xl);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md) var(--space-lg);
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+  }
+
+  .stats strong {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    color: var(--flame);
+    font-weight: 600;
+    margin-right: 0.15em;
+  }
+
   .shelf {
     margin-bottom: var(--space-2xl);
     padding-top: var(--space-lg);
     border-top: 1px solid var(--line);
   }
 
-  .shelf h2 {
+  .shelf-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-sm);
+  }
+
+  .shelf-head h2 {
     font-size: var(--text-xl);
+  }
+
+  .count {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
   }
 
   .blurb {
@@ -122,7 +180,34 @@ const shelves = (Object.keys(SHELVES) as Shelf[]).map((shelf) => ({
     margin: var(--space-lg) 0 0;
     padding: 0;
     display: grid;
-    gap: var(--space-xl);
+    gap: var(--space-md);
+  }
+
+  .entry {
+    display: grid;
+    gap: var(--space-xs);
+    padding: var(--space-md) var(--space-lg);
+    background: var(--surface-raised);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    color: var(--ink);
+    transition:
+      border-color 200ms var(--ease-out),
+      transform 200ms var(--ease-out);
+  }
+
+  a.entry:hover {
+    border-color: var(--flame-dim);
+    transform: translateY(-2px);
+  }
+
+  .entry-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
   }
 
   .book-title {
@@ -130,33 +215,25 @@ const shelves = (Object.keys(SHELVES) as Shelf[]).map((shelf) => ({
     font-size: var(--text-lg);
     font-weight: 600;
     color: var(--ink);
-    text-decoration-thickness: 1px;
+  }
+
+  a.entry:hover .book-title {
+    color: var(--flame);
   }
 
   .synopsis {
-    margin-top: var(--space-xs);
-    max-width: var(--measure);
-  }
-
-  .meta {
-    margin-top: var(--space-xs);
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-xs) var(--space-md);
-    font-size: var(--text-sm);
-    color: var(--ink-soft);
-  }
-
-  .status {
-    color: var(--flame);
-    font-variant-caps: all-small-caps;
-    letter-spacing: 0.06em;
-  }
-
-  .note {
-    margin-top: var(--space-lg);
-    font-size: var(--text-sm);
     color: var(--ink-soft);
     max-width: var(--measure);
+  }
+
+  .ghost {
+    background: transparent;
+    box-shadow: none;
+    border-style: dashed;
+  }
+
+  .skeleton-line.title {
+    width: 45%;
+    height: 1.1em;
   }
 </style>

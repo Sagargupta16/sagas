@@ -32,10 +32,16 @@ const { Content } = await render(book);
 <Base title={`${book.data.title} -- sagas`} description={book.data.synopsis}>
   <main>
     <article class="rise">
-      <p class="shelf-name">{SHELVES[book.data.shelf].name}</p>
+      <p class="eyebrow">
+        <a href={withBase('/')} class="back">Library</a>
+        <span class="sep">/</span>
+        {SHELVES[book.data.shelf].name}
+      </p>
       <h1>{book.data.title}</h1>
       <p class="meta">
-        <span class="status">{STATUS_LABELS[book.data.status]}</span>
+        <span class="pill" data-status={book.data.status}>
+          {STATUS_LABELS[book.data.status]}
+        </span>
         {book.data.universe && <span>set in: {book.data.universe}</span>}
         <span>since {formatDate(book.data.startedOn)}</span>
       </p>
@@ -46,23 +52,46 @@ const { Content } = await render(book);
     </article>
 
     <section class="chapters rise">
-      <h2>Chapters</h2>
+      <div class="chapters-head">
+        <h2>Chapters</h2>
+        <span class="count">{chapters.length}</span>
+      </div>
       {
         chapters.length === 0 ? (
-          <p class="empty">
-            No chapters yet. This book is still forming; when the first chapter
-            lands, it appears here.
-          </p>
+          <div class="empty">
+            <ol class="chapter-list">
+              <li aria-hidden="true">
+                <span class="num">01</span>
+                <span class="skeleton skeleton-line" style="width: 55%" />
+                <span class="pill">planned</span>
+              </li>
+              <li aria-hidden="true">
+                <span class="num">02</span>
+                <span class="skeleton skeleton-line" style="width: 40%" />
+                <span class="pill">planned</span>
+              </li>
+            </ol>
+            <p class="empty-note">
+              No chapters yet. This book is still forming; the first chapter
+              appears here the moment it is written.
+            </p>
+          </div>
         ) : (
-          <ol>
+          <ol class="chapter-list">
             {chapters.map((chapter) => (
               <li>
-                <a href={withBase(`/books/${slug}/${chapterSlug(chapter.id)}`)}>
-                  {chapter.data.title}
+                <a
+                  href={withBase(`/books/${slug}/${chapterSlug(chapter.id)}`)}
+                  class="chapter-link"
+                >
+                  <span class="num">
+                    {String(chapter.data.order).padStart(2, '0')}
+                  </span>
+                  <span class="chapter-title">{chapter.data.title}</span>
+                  <span class="pill" data-status={chapter.data.status}>
+                    {CHAPTER_STATUS_LABELS[chapter.data.status]}
+                  </span>
                 </a>
-                <span class="chapter-status">
-                  {CHAPTER_STATUS_LABELS[chapter.data.status]}
-                </span>
               </li>
             ))}
           </ol>
@@ -73,11 +102,19 @@ const { Content } = await render(book);
 </Base>
 
 <style>
-  .shelf-name {
-    font-size: var(--text-sm);
+  .eyebrow .back {
     color: var(--flame);
-    font-variant-caps: all-small-caps;
-    letter-spacing: 0.08em;
+    text-decoration: none;
+  }
+
+  .eyebrow .back:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .eyebrow .sep {
+    color: var(--ink-faint);
+    margin-inline: 0.4em;
   }
 
   h1 {
@@ -86,18 +123,7 @@ const { Content } = await render(book);
   }
 
   .meta {
-    margin-top: var(--space-sm);
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-xs) var(--space-md);
-    font-size: var(--text-sm);
-    color: var(--ink-soft);
-  }
-
-  .status {
-    color: var(--flame);
-    font-variant-caps: all-small-caps;
-    letter-spacing: 0.06em;
+    margin-top: var(--space-md);
   }
 
   .synopsis {
@@ -111,6 +137,7 @@ const { Content } = await render(book);
   .about {
     margin-top: var(--space-lg);
     max-width: var(--measure);
+    color: var(--ink-soft);
   }
 
   .chapters {
@@ -119,50 +146,95 @@ const { Content } = await render(book);
     border-top: 1px solid var(--line);
   }
 
-  .chapters h2 {
-    font-size: var(--text-xl);
-  }
-
-  .empty {
-    margin-top: var(--space-md);
-    color: var(--ink-soft);
-    max-width: var(--measure);
-  }
-
-  ol {
-    margin: var(--space-lg) 0 0;
-    padding: 0;
-    list-style: none;
-    counter-reset: chapter;
-    display: grid;
-    gap: var(--space-md);
-  }
-
-  ol li {
-    counter-increment: chapter;
+  .chapters-head {
     display: flex;
     align-items: baseline;
     gap: var(--space-sm);
   }
 
-  ol li::before {
-    content: counter(chapter, decimal-leading-zero);
+  .chapters-head h2 {
+    font-size: var(--text-xl);
+  }
+
+  .count {
     font-family: var(--font-display);
-    color: var(--ink-soft);
+    font-size: var(--text-sm);
+    color: var(--ink-faint);
     font-variant-numeric: tabular-nums;
   }
 
-  ol a {
+  .chapter-list {
+    margin: var(--space-lg) 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--space-xs);
+  }
+
+  .chapter-list li {
+    display: block;
+  }
+
+  .chapter-link,
+  .chapter-list li[aria-hidden] > * ~ * {
+    /* layout shared below */
+  }
+
+  .chapter-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    background: var(--surface-raised);
+    text-decoration: none;
+    color: var(--ink);
+    transition:
+      border-color 200ms var(--ease-out),
+      transform 200ms var(--ease-out);
+  }
+
+  .chapter-link:hover {
+    border-color: var(--flame-dim);
+    transform: translateX(3px);
+  }
+
+  .chapter-list li[aria-hidden] {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    border: 1px dashed var(--line-soft);
+    border-radius: var(--radius);
+  }
+
+  .num {
+    font-family: var(--font-display);
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+    flex: none;
+  }
+
+  .chapter-title {
     font-family: var(--font-display);
     font-size: var(--text-lg);
     font-weight: 500;
     color: var(--ink);
+    margin-right: auto;
   }
 
-  .chapter-status {
-    font-size: var(--text-sm);
+  .chapter-link:hover .chapter-title {
+    color: var(--flame);
+  }
+
+  .chapter-list li[aria-hidden] .skeleton {
+    margin-right: auto;
+  }
+
+  .empty-note {
+    margin-top: var(--space-lg);
     color: var(--ink-soft);
-    font-variant-caps: all-small-caps;
-    letter-spacing: 0.06em;
+    max-width: var(--measure);
   }
 </style>

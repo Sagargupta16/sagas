@@ -38,12 +38,17 @@ const { Content } = await render(chapter);
 >
   <main>
     <header class="chapter-head rise">
-      <p class="crumb">
-        <a href={withBase(`/books/${slug}`)}>{book.data.title}</a>
+      <p class="eyebrow crumb">
+        <a href={withBase('/')} class="back">Library</a>
+        <span class="sep">/</span>
+        <a href={withBase(`/books/${slug}`)} class="back">{book.data.title}</a>
       </p>
+      <p class="chapter-num">Chapter {chapter.data.order}</p>
       <h1>{chapter.data.title}</h1>
       <p class="meta">
-        <span class="status">{CHAPTER_STATUS_LABELS[chapter.data.status]}</span>
+        <span class="pill" data-status={chapter.data.status}>
+          {CHAPTER_STATUS_LABELS[chapter.data.status]}
+        </span>
         {
           chapter.data.publishedOn && (
             <span>{formatDate(chapter.data.publishedOn)}</span>
@@ -61,21 +66,23 @@ const { Content } = await render(chapter);
         prev ? (
           <a
             href={withBase(`/books/${slug}/${chapterSlug(prev.id)}`)}
-            class="prev"
+            class="page prev"
           >
-            &larr; {prev.data.title}
+            <span class="dir">&larr; Previous</span>
+            <span class="page-title">{prev.data.title}</span>
           </a>
         ) : (
-          <span />
+          <span class="page placeholder" />
         )
       }
       {
         next && (
           <a
             href={withBase(`/books/${slug}/${chapterSlug(next.id)}`)}
-            class="next"
+            class="page next"
           >
-            {next.data.title} &rarr;
+            <span class="dir">Next &rarr;</span>
+            <span class="page-title">{next.data.title}</span>
           </a>
         )
       }
@@ -88,34 +95,37 @@ const { Content } = await render(chapter);
     margin-bottom: var(--space-2xl);
   }
 
-  .crumb {
-    font-size: var(--text-sm);
+  .crumb .back {
+    color: var(--flame);
+    text-decoration: none;
   }
 
-  .crumb a {
-    color: var(--flame);
+  .crumb .back:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .crumb .sep {
+    color: var(--ink-faint);
+    margin-inline: 0.4em;
+  }
+
+  .chapter-num {
+    margin-top: var(--space-md);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    color: var(--ink-faint);
     font-variant-caps: all-small-caps;
     letter-spacing: 0.08em;
-    text-decoration: none;
   }
 
   h1 {
     font-size: var(--text-2xl);
-    margin-top: var(--space-xs);
+    margin-top: var(--space-2xs);
   }
 
   .meta {
-    margin-top: var(--space-sm);
-    display: flex;
-    gap: var(--space-md);
-    font-size: var(--text-sm);
-    color: var(--ink-soft);
-  }
-
-  .status {
-    color: var(--flame);
-    font-variant-caps: all-small-caps;
-    letter-spacing: 0.06em;
+    margin-top: var(--space-md);
   }
 
   .prose {
@@ -167,13 +177,48 @@ const { Content } = await render(chapter);
     padding-top: var(--space-lg);
     border-top: 1px solid var(--line);
     display: flex;
-    justify-content: space-between;
-    gap: var(--space-lg);
-    font-family: var(--font-display);
+    gap: var(--space-md);
   }
 
-  .pager .next {
+  .page {
+    flex: 1;
+    display: grid;
+    gap: var(--space-2xs);
+    padding: var(--space-md);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    background: var(--surface-raised);
+    text-decoration: none;
+    color: var(--ink);
+    transition:
+      border-color 200ms var(--ease-out),
+      transform 200ms var(--ease-out);
+  }
+
+  a.page:hover {
+    border-color: var(--flame-dim);
+    transform: translateY(-2px);
+  }
+
+  .page.placeholder {
+    background: transparent;
+    border: none;
+    pointer-events: none;
+  }
+
+  .page.next {
     text-align: right;
-    margin-left: auto;
+  }
+
+  .dir {
+    font-size: var(--text-sm);
+    color: var(--flame);
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.06em;
+  }
+
+  .page-title {
+    font-family: var(--font-display);
+    font-weight: 500;
   }
 </style>
