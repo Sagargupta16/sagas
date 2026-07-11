@@ -1,11 +1,14 @@
 ---
 import { getCollection, getEntry, render } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
+import PdfReader from '../../../components/PdfReader.astro';
+import AudioPlayer from '../../../components/AudioPlayer.astro';
 import {
   CHAPTER_STATUS_LABELS,
   bookSlug,
   chapterSlug,
   formatDate,
+  readingMinutes,
   withBase,
 } from '../../../lib/shelf';
 
@@ -30,6 +33,7 @@ const prev = index > 0 ? siblings[index - 1] : undefined;
 const next = index < siblings.length - 1 ? siblings[index + 1] : undefined;
 
 const { Content } = await render(chapter);
+const minutes = readingMinutes(chapter.body);
 ---
 
 <Base
@@ -37,6 +41,7 @@ const { Content } = await render(chapter);
   description={`Chapter ${chapter.data.order} of ${book.data.title}.`}
   ogType="article"
 >
+  <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
   <main>
     <header class="chapter-head rise">
       <p class="eyebrow crumb">
@@ -50,12 +55,23 @@ const { Content } = await render(chapter);
         <span class="pill" data-status={chapter.data.status}>
           {CHAPTER_STATUS_LABELS[chapter.data.status]}
         </span>
+        <span>{minutes} min read</span>
         {
           chapter.data.publishedOn && (
             <span>{formatDate(chapter.data.publishedOn)}</span>
           )
         }
       </p>
+      {
+        chapter.data.audioUrl && (
+          <AudioPlayer url={chapter.data.audioUrl} title={chapter.data.title} />
+        )
+      }
+      {
+        chapter.data.pdfUrl && (
+          <PdfReader url={chapter.data.pdfUrl} title={chapter.data.title} />
+        )
+      }
     </header>
 
     <article class="prose rise">
@@ -91,7 +107,46 @@ const { Content } = await render(chapter);
   </main>
 </Base>
 
+<script>
+  // Reading progress -- the one client script; it directly serves reading.
+  const bar = document.getElementById('progress-bar');
+  const article = document.querySelector('.prose');
+  if (bar && article) {
+    const update = () => {
+      const el = article as HTMLElement;
+      const start = el.offsetTop;
+      const total = el.offsetHeight - window.innerHeight;
+      const scrolled = window.scrollY - start;
+      const pct =
+        total > 0 ? Math.min(100, Math.max(0, (scrolled / total) * 100)) : 0;
+      bar.style.width = pct + '%';
+    };
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update, { passive: true });
+  }
+</script>
+
 <style>
+  .progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    z-index: 20;
+    background: transparent;
+    pointer-events: none;
+  }
+
+  .progress span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--flame);
+    transition: width 80ms linear;
+  }
+
   .chapter-head {
     margin-bottom: var(--space-2xl);
   }

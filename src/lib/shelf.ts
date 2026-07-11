@@ -43,3 +43,9 @@ export const formatDate = (date: Date) =>
     month: 'short',
     day: 'numeric',
   });
+
+/** Reading time in whole minutes from raw markdown body, at 230 wpm. */
+export const readingMinutes = (body: string | undefined) => {
+  const words = (body ?? '').trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 230));
+};

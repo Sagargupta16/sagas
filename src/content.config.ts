@@ -11,6 +11,10 @@ const books = defineCollection({
     universe: z.string().optional(),
     startedOn: z.coerce.date(),
     tags: z.array(z.string()).default([]),
+    // downloadable / listenable formats (added as the book gains them)
+    pdfUrl: z.string().optional(),
+    audioUrl: z.string().optional(),
+    cover: z.string().optional(),
   }),
 });
 
@@ -21,6 +25,9 @@ const chapters = defineCollection({
     order: z.number(),
     status: z.enum(['draft', 'revising', 'final']).default('draft'),
     publishedOn: z.coerce.date().optional(),
+    // per-chapter formats
+    pdfUrl: z.string().optional(),
+    audioUrl: z.string().optional(),
   }),
 });
 

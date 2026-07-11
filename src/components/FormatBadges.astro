@@ -1,0 +1,35 @@
+---
+// Small availability badges for downloadable / listenable formats.
+interface Props {
+  pdfUrl?: string;
+  audioUrl?: string;
+  class?: string;
+}
+const { pdfUrl, audioUrl, class: klass } = Astro.props;
+const has = pdfUrl || audioUrl;
+---
+
+{
+  has && (
+    <span class:list={['badge-group', klass]}>
+      {pdfUrl && (
+        <span class="badge" title="PDF available">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <path d="M14 2v6h6" />
+          </svg>
+          PDF
+        </span>
+      )}
+      {audioUrl && (
+        <span class="badge" title="Audiobook available">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M3 10v4h4l5 5V5L7 10H3z" />
+            <path d="M16 8a5 5 0 0 1 0 8" />
+          </svg>
+          Audio
+        </span>
+      )}
+    </span>
+  )
+}

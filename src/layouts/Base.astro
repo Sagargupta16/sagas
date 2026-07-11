@@ -85,16 +85,49 @@ const jsonLd = {
     </header>
     <slot />
     <footer>
-      <div class="wrap">
-        <p class="foot-lead">A living library of unfinished books.</p>
-        <p class="foot-fine">
-          Written in the open by <a href="https://sagargupta.online"
-            >Sagar Gupta</a
-          >. Fan fiction is free and non-commercial, always. Prose licensed <a
-            href="https://creativecommons.org/licenses/by-nc-nd/4.0/"
-            >CC BY-NC-ND 4.0</a
-          >.
-        </p>
+      <div class="wrap foot-grid">
+        <div class="foot-brand">
+          <a href={withBase('/')} class="wordmark foot-mark">
+            <svg
+              class="flame"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              fill="currentColor"
+            >
+              <path
+                d="M12 2c1.2 3.3-1.8 4.8-1.8 7.4 0 1.3 1 2.1 1 2.1s-.4-2.2 1.3-3.4c1.9 2 3.5 3.6 3.5 6.2A6 6 0 0 1 6 14.3C6 9.8 11 8.4 12 2Z"
+              ></path>
+            </svg>
+            <span>sagas</span>
+          </a>
+          <p class="foot-lead">A living library of unfinished books.</p>
+        </div>
+
+        <nav class="foot-col" aria-label="Shelves">
+          <h2>Shelves</h2>
+          <a href={withBase('/#original-fantasy')}>Original Fantasy</a>
+          <a href={withBase('/#fan-fiction')}>Fan Fiction</a>
+          <a href={withBase('/#essays')}>Essays</a>
+        </nav>
+
+        <nav class="foot-col" aria-label="Follow">
+          <h2>Follow</h2>
+          <a href={new URL(withBase('/rss.xml'), Astro.site)}>RSS feed</a>
+          <a href="https://sagargupta.online">Sagar Gupta</a>
+          <a href="https://github.com/Sagargupta16/sagas">Source on GitHub</a>
+        </nav>
+
+        <div class="foot-col">
+          <h2>About</h2>
+          <p class="foot-fine">
+            Fan fiction is free and non-commercial, always. Prose licensed <a
+              href="https://creativecommons.org/licenses/by-nc-nd/4.0/"
+              >CC BY-NC-ND 4.0</a
+            >; code MIT.
+          </p>
+        </div>
       </div>
     </footer>
   </body>
@@ -105,9 +138,10 @@ const jsonLd = {
     position: sticky;
     top: 0;
     z-index: 10;
-    background: color-mix(in oklab, var(--surface) 88%, transparent);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--line-soft);
+    background: var(--glass-strong);
+    backdrop-filter: blur(var(--blur)) saturate(1.3);
+    -webkit-backdrop-filter: blur(var(--blur)) saturate(1.3);
+    border-bottom: 1px solid var(--glass-border);
   }
 
   nav {
@@ -160,16 +194,54 @@ const jsonLd = {
     background: var(--surface-sunken);
   }
 
-  footer .wrap {
-    padding-block: var(--space-xl);
+  .foot-grid {
+    padding-block: var(--space-2xl) var(--space-xl);
     display: grid;
-    gap: var(--space-xs);
+    gap: var(--space-xl) var(--space-lg);
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 40rem) {
+    .foot-grid {
+      grid-template-columns: 1.6fr 1fr 1fr 1.4fr;
+    }
+  }
+
+  .foot-mark {
+    font-size: var(--text-lg);
   }
 
   .foot-lead {
+    margin-top: var(--space-sm);
     font-family: var(--font-display);
-    font-size: var(--text-lg);
-    color: var(--ink);
+    color: var(--ink-soft);
+    max-width: 24ch;
+  }
+
+  .foot-col {
+    display: grid;
+    gap: var(--space-xs);
+    align-content: start;
+  }
+
+  .foot-col h2 {
+    font-size: var(--text-sm);
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    font-weight: 600;
+  }
+
+  .foot-col a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: var(--text-sm);
+    width: fit-content;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .foot-col a:hover {
+    color: var(--flame);
   }
 
   .foot-fine {
