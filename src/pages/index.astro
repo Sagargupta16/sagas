@@ -92,7 +92,7 @@ const totalChapters = chapters.length;
               );
             })}
 
-            <li aria-hidden="true">
+            <li aria-hidden="true" class="ghost-li">
               <div class="entry ghost">
                 <span class="entry-top">
                   <span class="skeleton skeleton-line title" />
@@ -189,9 +189,12 @@ const totalChapters = chapters.length;
     padding: 0;
     display: grid;
     gap: var(--space-md);
+    /* multi-column on wider screens: books browse 2-3 up, not a thin stack */
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
   }
 
   .entry {
+    height: 100%;
     display: grid;
     gap: var(--space-xs);
     padding: var(--space-md) var(--space-lg);
@@ -234,6 +237,10 @@ const totalChapters = chapters.length;
   .synopsis {
     color: var(--ink-soft);
     max-width: var(--measure);
+  }
+
+  .ghost-li {
+    grid-column: 1 / -1;
   }
 
   .ghost {

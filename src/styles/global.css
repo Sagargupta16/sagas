@@ -39,7 +39,13 @@
   --text-2xl: clamp(2.1rem, 1.6rem + 2.6vw, 3.2rem);
 
   --measure: 65ch;
-  --wrap: min(100% - 2 * var(--space-lg), 46rem);
+
+  /* two-tier width system (patterns from kalchar + ledger-sync):
+     browse/grid surfaces run wide; prose is capped to a reading measure. */
+  --gutter: clamp(1.25rem, 4vw, 2.5rem);
+  --wrap-wide: 75rem; /* homepage + book browsing ceiling (1200px) */
+  --wrap-read: 44rem; /* long-form reading measure (~704px) */
+  --wrap: var(--wrap-wide); /* default; reader pages opt into --wrap-read */
   --radius: 12px;
   --radius-sm: 6px;
 
@@ -134,17 +140,31 @@ a:hover {
   color: var(--surface);
 }
 
-/* shared page wrapper */
+/* shared page wrapper -- fluid gutter, capped at the wide browse width */
 .wrap {
-  width: var(--wrap);
+  width: 100%;
+  max-width: var(--wrap);
   margin-inline: auto;
+  padding-inline: var(--gutter);
 }
 
 main {
-  width: var(--wrap);
+  width: 100%;
+  max-width: var(--wrap);
   margin-inline: auto;
+  padding-inline: var(--gutter);
   padding-block: var(--space-2xl) var(--space-3xl);
   flex: 1;
+}
+
+/* reader pages opt into the narrow reading measure */
+main.read {
+  max-width: var(--wrap-read);
+}
+
+/* a prose block stays at reading width even inside a wide container */
+.readable {
+  max-width: var(--wrap-read);
 }
 
 /* eyebrow label above headings (shelf name, breadcrumb) */
