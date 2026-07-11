@@ -29,7 +29,11 @@ const chapters = (
 const { Content } = await render(book);
 ---
 
-<Base title={`${book.data.title} -- sagas`} description={book.data.synopsis}>
+<Base
+  title={`${book.data.title} -- sagas`}
+  description={book.data.synopsis}
+  ogType="book"
+>
   <main>
     <article class="rise">
       <p class="eyebrow">
