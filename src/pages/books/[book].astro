@@ -170,12 +170,12 @@ const hasFormats = book.data.pdfUrl || book.data.audioUrl;
     font-size: var(--text-lg);
     line-height: 1.5;
     color: var(--ink-soft);
-    max-width: var(--measure);
+    max-width: var(--wrap-read);
   }
 
   .about {
     margin-top: var(--space-lg);
-    max-width: var(--measure);
+    max-width: var(--wrap-read);
     color: var(--ink-soft);
   }
 
@@ -207,7 +207,9 @@ const hasFormats = book.data.pdfUrl || book.data.audioUrl;
     padding: 0;
     list-style: none;
     display: grid;
-    gap: var(--space-xs);
+    gap: var(--space-sm);
+    /* two-up on wide screens so a long book scans fast, one column on phones */
+    grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
   }
 
   .chapter-list li {
