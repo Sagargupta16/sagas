@@ -7,9 +7,28 @@ import { withBase } from '../lib/shelf';
 interface Props {
   title: string;
   description: string;
+  ogType?: 'website' | 'article' | 'book';
 }
 
-const { title, description } = Astro.props;
+const { title, description, ogType = 'website' } = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const siteName = 'sagas';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: siteName,
+  url: new URL(withBase('/'), Astro.site).href,
+  description:
+    'Original fantasy, fan fiction, and essays by Sagar Gupta, written in the open one chapter at a time.',
+  inLanguage: 'en',
+  author: {
+    '@type': 'Person',
+    name: 'Sagar Gupta',
+    url: 'https://sagargupta.online',
+  },
+};
 ---
 
 <!doctype html>
@@ -19,6 +38,7 @@ const { title, description } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
+    <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
     <link
       rel="alternate"
@@ -26,7 +46,21 @@ const { title, description } = Astro.props;
       title="sagas"
       href={new URL(withBase('/rss.xml'), Astro.site)}
     />
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
     <title>{title}</title>
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(jsonLd)}
+    />
   </head>
   <body>
     <header>

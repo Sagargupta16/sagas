@@ -85,6 +85,7 @@ Invoke via the Skill tool when the trigger matches. The craft knowledge base is 
 | `write-essay`      | ...develops a perspective essay (Graham/Orwell method)                                                                                                                                                                    |
 | `publish-chapter`  | ...releases a chapter (gates, publishedOn, RSS verify)                                                                                                                                                                    |
 | `shelf-status`     | ...asks for a library-wide audit                                                                                                                                                                                          |
+| `frontend-quality` | ...ships a page/route or asks about accessibility, performance, or SEO (a11y/CWV/metadata/sitemap/OG). Site-shell gate, not prose. Adapted from the kalchar skill of the same name                                        |
 
 ## Gotchas
 

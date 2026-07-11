@@ -35,6 +35,7 @@ const { Content } = await render(chapter);
 <Base
   title={`${chapter.data.title} -- ${book.data.title} -- sagas`}
   description={`Chapter ${chapter.data.order} of ${book.data.title}.`}
+  ogType="article"
 >
   <main>
     <header class="chapter-head rise">
