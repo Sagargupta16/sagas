@@ -40,10 +40,40 @@
 
   --measure: 65ch;
   --wrap: min(100% - 2 * var(--space-lg), 46rem);
-  --radius: 10px;
+  --radius: 12px;
   --radius-sm: 6px;
+
+  /* named motion tokens -- no magic timings (kalchar house rule) */
+  --duration-fast: 160ms;
+  --duration-base: 220ms;
+  --duration-slow: 380ms;
+  --duration-enter: 700ms;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
   --shadow: 0 1px 2px light-dark(oklch(0.5 0.02 80 / 0.08), oklch(0 0 0 / 0.3));
+  --shadow-glass: 0 8px 30px
+    light-dark(oklch(0.5 0.02 80 / 0.12), oklch(0 0 0 / 0.4));
+
+  /* glassy surfaces: translucent + blurred, tinted to the candle palette.
+     Used on chrome and cards, not everywhere (refined, not slop). */
+  --glass: light-dark(oklch(0.99 0.01 80 / 0.6), oklch(0.23 0.016 80 / 0.5));
+  --glass-strong: light-dark(
+    oklch(0.98 0.012 80 / 0.82),
+    oklch(0.2 0.016 80 / 0.72)
+  );
+  --glass-border: light-dark(oklch(1 0 0 / 0.5), oklch(0.9 0.02 80 / 0.12));
+  --blur: 14px;
+}
+
+/* shared glass surface */
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(var(--blur)) saturate(1.3);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(1.3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-glass);
 }
 
 * {
@@ -174,6 +204,34 @@ main {
 .pill[data-status='ongoing'] {
   color: var(--flame);
   border-color: var(--flame-dim);
+}
+
+/* format badge -- PDF / audio availability, distinct from status pill */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.15em 0.55em;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.06em;
+  background: var(--flame-wash);
+  color: var(--flame);
+  border: 1px solid var(--flame-dim);
+  white-space: nowrap;
+}
+
+.badge svg {
+  width: 0.9em;
+  height: 0.9em;
+  flex: none;
+}
+
+.badge-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
 }
 
 /* meta row -- dotted-separated inline facts */

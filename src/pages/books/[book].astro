@@ -1,6 +1,9 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import FormatBadges from '../../components/FormatBadges.astro';
+import PdfReader from '../../components/PdfReader.astro';
+import AudioPlayer from '../../components/AudioPlayer.astro';
 import {
   SHELVES,
   STATUS_LABELS,
@@ -8,6 +11,7 @@ import {
   bookSlug,
   chapterSlug,
   formatDate,
+  readingMinutes,
   withBase,
 } from '../../lib/shelf';
 
@@ -27,6 +31,7 @@ const chapters = (
 ).sort((a, b) => a.data.order - b.data.order);
 
 const { Content } = await render(book);
+const hasFormats = book.data.pdfUrl || book.data.audioUrl;
 ---
 
 <Base
@@ -48,12 +53,33 @@ const { Content } = await render(book);
         </span>
         {book.data.universe && <span>set in: {book.data.universe}</span>}
         <span>since {formatDate(book.data.startedOn)}</span>
+        <FormatBadges pdfUrl={book.data.pdfUrl} audioUrl={book.data.audioUrl} />
       </p>
       <p class="synopsis">{book.data.synopsis}</p>
       <div class="about">
         <Content />
       </div>
     </article>
+
+    {
+      hasFormats && (
+        <section class="formats rise">
+          <div class="chapters-head">
+            <h2>Formats</h2>
+          </div>
+          {book.data.audioUrl && (
+            <AudioPlayer
+              url={book.data.audioUrl}
+              title={book.data.title}
+              label="Listen to the audiobook"
+            />
+          )}
+          {book.data.pdfUrl && (
+            <PdfReader url={book.data.pdfUrl} title={book.data.title} />
+          )}
+        </section>
+      )
+    }
 
     <section class="chapters rise">
       <div class="chapters-head">
@@ -91,7 +117,16 @@ const { Content } = await render(book);
                   <span class="num">
                     {String(chapter.data.order).padStart(2, '0')}
                   </span>
-                  <span class="chapter-title">{chapter.data.title}</span>
+                  <span class="chapter-main">
+                    <span class="chapter-title">{chapter.data.title}</span>
+                    <span class="chapter-meta">
+                      <span>{readingMinutes(chapter.body)} min read</span>
+                      <FormatBadges
+                        pdfUrl={chapter.data.pdfUrl}
+                        audioUrl={chapter.data.audioUrl}
+                      />
+                    </span>
+                  </span>
                   <span class="pill" data-status={chapter.data.status}>
                     {CHAPTER_STATUS_LABELS[chapter.data.status]}
                   </span>
@@ -220,12 +255,27 @@ const { Content } = await render(book);
     flex: none;
   }
 
+  .chapter-main {
+    display: grid;
+    gap: 0.15rem;
+    margin-right: auto;
+    min-width: 0;
+  }
+
   .chapter-title {
     font-family: var(--font-display);
     font-size: var(--text-lg);
     font-weight: 500;
     color: var(--ink);
-    margin-right: auto;
+  }
+
+  .chapter-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs) var(--space-sm);
+    font-size: var(--text-sm);
+    color: var(--ink-faint);
   }
 
   .chapter-link:hover .chapter-title {

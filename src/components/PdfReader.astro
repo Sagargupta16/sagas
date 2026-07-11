@@ -1,0 +1,85 @@
+---
+// Inline PDF reader with download + open-in-tab. Native <iframe>, zero JS.
+interface Props {
+  url: string;
+  title: string;
+}
+const { url, title } = Astro.props;
+---
+
+<section class="pdf glass" aria-label={`PDF reader for ${title}`}>
+  <header class="pdf-bar">
+    <span class="pdf-label">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        aria-hidden="true"
+      >
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <path d="M14 2v6h6"></path>
+      </svg>
+      Read as PDF
+    </span>
+    <span class="pdf-actions">
+      <a href={url} target="_blank" rel="noopener">Open in tab</a>
+      <a href={url} download class="download">Download</a>
+    </span>
+  </header>
+  <iframe src={url} title={`${title} (PDF)`} loading="lazy"></iframe>
+</section>
+
+<style>
+  .pdf {
+    margin-block: var(--space-xl);
+    overflow: hidden;
+  }
+
+  .pdf-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .pdf-label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    color: var(--ink);
+  }
+
+  .pdf-label svg {
+    width: 1em;
+    height: 1em;
+    color: var(--flame);
+  }
+
+  .pdf-actions {
+    display: inline-flex;
+    gap: var(--space-md);
+    font-size: var(--text-sm);
+  }
+
+  .pdf-actions a {
+    text-decoration: none;
+  }
+
+  .download {
+    color: var(--flame);
+    font-weight: 600;
+  }
+
+  iframe {
+    display: block;
+    width: 100%;
+    height: min(80vh, 720px);
+    border: 0;
+    background: var(--surface-sunken);
+  }
+</style>
