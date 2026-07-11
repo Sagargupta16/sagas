@@ -8,6 +8,7 @@ import {
   bookSlug,
   chapterSlug,
   formatDate,
+  withBase,
 } from '../../lib/shelf';
 
 export async function getStaticPaths() {
@@ -56,7 +57,7 @@ const { Content } = await render(book);
           <ol>
             {chapters.map((chapter) => (
               <li>
-                <a href={`/books/${slug}/${chapterSlug(chapter.id)}`}>
+                <a href={withBase(`/books/${slug}/${chapterSlug(chapter.id)}`)}>
                   {chapter.data.title}
                 </a>
                 <span class="chapter-status">

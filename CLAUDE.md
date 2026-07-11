@@ -13,7 +13,7 @@
 
 sagas -- a living library of unfinished books. Original fantasy, fan fiction, and perspective essays by Sagar, written in the open one chapter at a time. Frontend-only static site; downloads and audiobooks may come later.
 
-Deploys to GitHub Pages at https://sagas.sagargupta.online.
+Deploys to GitHub Pages at https://sagargupta.online/sagas (project-site subpath, matching every other project repo in the workspace).
 
 ## Stack
 
@@ -92,6 +92,7 @@ Invoke via the Skill tool when the trigger matches. The craft knowledge base is 
 - pnpm 11 needs `allowBuilds` in `pnpm-workspace.yaml` for esbuild/sharp; without it installs fail.
 - Fontsource imports must point at `index.css` explicitly or `astro check` fails (no types on the bare entry).
 - Fonts are self-hosted via Fontsource (Eczar display, Literata body). No Google Fonts CDN.
+- Site deploys at a subpath (`base: '/sagas'` in `astro.config.mjs`): every internal `href`/link must go through `withBase()` from `src/lib/shelf.ts`, never a raw `/path` string. `@astrojs/rss` link fields also need `withBase()` -- `site`/`base` aren't applied to them automatically.
 
 ## Repo-specific rules
 

@@ -2,7 +2,7 @@
 
 A living library of unfinished books.
 
-Original fantasy, fan fiction, and essays on how I see the world -- written in the open, one chapter at a time. Live at [sagas.sagargupta.online](https://sagas.sagargupta.online).
+Original fantasy, fan fiction, and essays on how I see the world -- written in the open, one chapter at a time. Live at [sagargupta.online/sagas](https://sagargupta.online/sagas).
 
 ## The shelves
 
@@ -27,7 +27,7 @@ Deploys to GitHub Pages on every push to `main`.
 ## Adding a chapter
 
 1. Drop `NN-title.md` into `src/content/books/<book>/chapters/`.
-2. Frontmatter: `title`, `order`, `status` (`draft | revising | final`), and `publishedOn` once it should appear in the [RSS feed](https://sagas.sagargupta.online/rss.xml).
+2. Frontmatter: `title`, `order`, `status` (`draft | revising | final`), and `publishedOn` once it should appear in the [RSS feed](https://sagargupta.online/sagas/rss.xml).
 3. Push. That's the whole pipeline.
 
 ## License

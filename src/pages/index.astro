@@ -6,6 +6,7 @@ import {
   STATUS_LABELS,
   bookSlug,
   formatDate,
+  withBase,
   type Shelf,
 } from '../lib/shelf';
 
@@ -48,7 +49,7 @@ const shelves = (Object.keys(SHELVES) as Shelf[]).map((shelf) => ({
               const count = chapterCount(slug);
               return (
                 <li>
-                  <a href={`/books/${slug}`} class="book-title">
+                  <a href={withBase(`/books/${slug}`)} class="book-title">
                     {book.data.title}
                   </a>
                   <p class="synopsis">{book.data.synopsis}</p>

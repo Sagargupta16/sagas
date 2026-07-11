@@ -3,7 +3,8 @@ import { defineConfig } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://sagas.sagargupta.online',
+  site: 'https://sagargupta.online',
+  base: '/sagas',
   trailingSlash: 'never',
   markdown: {
     smartypants: false,

@@ -2,6 +2,7 @@
 import '@fontsource-variable/eczar/index.css';
 import '@fontsource-variable/literata/index.css';
 import '../styles/global.css';
+import { withBase } from '../lib/shelf';
 
 interface Props {
   title: string;
@@ -18,19 +19,19 @@ const { title, description } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
     <link
       rel="alternate"
       type="application/rss+xml"
       title="sagas"
-      href={new URL('rss.xml', Astro.site)}
+      href={new URL(withBase('/rss.xml'), Astro.site)}
     />
     <title>{title}</title>
   </head>
   <body>
     <header>
       <nav>
-        <a href="/" class="wordmark">sagas</a>
+        <a href={withBase('/')} class="wordmark">sagas</a>
       </nav>
     </header>
     <slot />
