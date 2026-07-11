@@ -1,0 +1,174 @@
+---
+// Read-aloud (text-to-speech) for a chapter. Uses the browser's built-in
+// Web Speech API -- no dependencies, no network, works offline. Reads the
+// paragraphs inside `.prose` one at a time, highlighting the active one and
+// keeping it in view. Progressive enhancement: hidden if the API is absent.
+---
+
+<div class="read-aloud glass" data-read-aloud hidden>
+  <button type="button" class="ra-play" data-ra-toggle aria-label="Read this chapter aloud">
+    <svg class="ra-icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M8 5v14l11-7z"></path>
+    </svg>
+    <svg class="ra-icon-pause is-hidden" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M6 5h4v14H6zM14 5h4v14h-4z"></path>
+    </svg>
+    <span class="ra-label" data-ra-label>Read aloud</span>
+  </button>
+  <button type="button" class="ra-stop" data-ra-stop aria-label="Stop reading" hidden>
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M6 6h12v12H6z"></path>
+    </svg>
+  </button>
+  <span class="ra-hint" data-ra-hint>Listen with your browser's voice</span>
+</div>
+
+<script>
+  const synth = window.speechSynthesis;
+  const root = document.querySelector<HTMLElement>('[data-read-aloud]');
+  const prose = document.querySelector<HTMLElement>('.prose');
+  if (synth && root && prose) {
+    root.hidden = false;
+    const toggle = root.querySelector<HTMLButtonElement>('[data-ra-toggle]')!;
+    const stopBtn = root.querySelector<HTMLButtonElement>('[data-ra-stop]')!;
+    const label = root.querySelector<HTMLElement>('[data-ra-label]')!;
+    const hint = root.querySelector<HTMLElement>('[data-ra-hint]')!;
+    const iconPlay = root.querySelector<SVGElement>('.ra-icon-play')!;
+    const iconPause = root.querySelector<SVGElement>('.ra-icon-pause')!;
+
+    // Read paragraphs, headings, and blockquotes in document order.
+    const blocks = Array.from(
+      prose.querySelectorAll<HTMLElement>('p, h2, h3, blockquote'),
+    ).filter((el) => (el.textContent ?? '').trim().length > 0);
+
+    let index = 0;
+    let playing = false;
+
+    const setPlayingUI = (on: boolean) => {
+      playing = on;
+      iconPlay.classList.toggle('is-hidden', on);
+      iconPause.classList.toggle('is-hidden', !on);
+      label.textContent = on ? 'Pause' : index > 0 ? 'Resume' : 'Read aloud';
+      stopBtn.hidden = !on && index === 0;
+      toggle.setAttribute('aria-pressed', String(on));
+    };
+
+    const clearHighlight = () => {
+      blocks.forEach((b) => b.removeAttribute('data-reading'));
+    };
+
+    const highlight = (i: number) => {
+      clearHighlight();
+      const el = blocks[i];
+      if (!el) return;
+      el.setAttribute('data-reading', 'true');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+    const speakFrom = (i: number) => {
+      if (i >= blocks.length) {
+        stop();
+        return;
+      }
+      index = i;
+      highlight(i);
+      const u = new SpeechSynthesisUtterance(blocks[i].textContent ?? '');
+      u.rate = 1;
+      u.pitch = 1;
+      u.onend = () => {
+        if (playing) speakFrom(i + 1);
+      };
+      synth.speak(u);
+    };
+
+    const stop = () => {
+      synth.cancel();
+      clearHighlight();
+      index = 0;
+      setPlayingUI(false);
+      hint.hidden = false;
+    };
+
+    toggle.addEventListener('click', () => {
+      hint.hidden = true;
+      if (!playing) {
+        // starting fresh or resuming
+        if (synth.paused && synth.speaking) {
+          synth.resume();
+        } else {
+          synth.cancel();
+          speakFrom(index);
+        }
+        setPlayingUI(true);
+      } else {
+        synth.pause();
+        setPlayingUI(false);
+      }
+    });
+
+    stopBtn.addEventListener('click', stop);
+    // Cancel any speech if the reader leaves the page.
+    window.addEventListener('pagehide', () => synth.cancel());
+  }
+</script>
+
+<style>
+  .read-aloud {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    margin-block: var(--space-lg);
+    width: fit-content;
+  }
+
+  .read-aloud button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    border: none;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    cursor: pointer;
+    border-radius: 999px;
+    padding: 0.3em 0.5em;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .ra-play {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--flame);
+    padding-inline: 0.4em 0.7em;
+  }
+
+  .read-aloud svg {
+    width: 1.05em;
+    height: 1.05em;
+    flex: none;
+  }
+
+  .read-aloud .is-hidden {
+    display: none;
+  }
+
+  .ra-stop {
+    color: var(--ink-soft);
+  }
+
+  .ra-stop:hover {
+    color: var(--flame);
+  }
+
+  .ra-hint {
+    font-size: var(--text-sm);
+    color: var(--ink-faint);
+  }
+
+  @media (max-width: 30rem) {
+    .ra-hint {
+      display: none;
+    }
+  }
+</style>

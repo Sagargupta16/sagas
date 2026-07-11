@@ -3,6 +3,7 @@ import { getCollection, getEntry, render } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
 import PdfReader from '../../../components/PdfReader.astro';
 import AudioPlayer from '../../../components/AudioPlayer.astro';
+import ReadAloud from '../../../components/ReadAloud.astro';
 import {
   CHAPTER_STATUS_LABELS,
   bookSlug,
@@ -72,6 +73,7 @@ const minutes = readingMinutes(chapter.body);
           <PdfReader url={chapter.data.pdfUrl} title={chapter.data.title} />
         )
       }
+      <ReadAloud />
     </header>
 
     <article class="prose rise">
@@ -192,6 +194,16 @@ const minutes = readingMinutes(chapter.body);
 
   .prose :global(p) {
     margin-block: 0 var(--space-lg);
+  }
+
+  /* active paragraph while read-aloud is speaking */
+  .prose :global([data-reading]) {
+    background: var(--flame-wash);
+    box-shadow:
+      0 0 0 0.5rem var(--flame-wash),
+      inset 0.2rem 0 0 var(--flame);
+    border-radius: var(--radius-sm);
+    transition: background var(--duration-base) var(--ease-out);
   }
 
   .prose :global(p:first-of-type)::first-letter {

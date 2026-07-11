@@ -17,6 +17,7 @@ export async function GET(context: APIContext) {
     description:
       'A living library of unfinished books. New chapters as they land.',
     site: new URL(withBase('/'), context.site!).href,
+    stylesheet: withBase('/rss/styles.xsl'),
     trailingSlash: false,
     items: chapters
       .sort(
