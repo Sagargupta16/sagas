@@ -25,3 +25,6 @@ pnpm-debug.log*
 
 # local claude settings
 .claude/settings.local.json
+
+# graphify knowledge graph artifacts
+graphify-out/

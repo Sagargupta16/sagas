@@ -100,3 +100,8 @@ Invoke via the Skill tool when the trigger matches. The craft knowledge base is 
 - Prose (everything under `src/content/`) is CC BY-NC-ND 4.0; code is MIT. See LICENSE. Don't relicense either direction.
 - Chapter markdown is Sagar's writing voice, not code: never "fix" his prose style, only typos when asked.
 - Reading experience is the product: any UI change must be verified on mobile viewport first.
+
+## Knowledge Graph (graphify)
+
+- `graphify-out/` holds a prebuilt code graph (gitignored). For architecture/relationship questions ("what calls X", "what imports Y", impact of a change), query it before grepping: `graphify query "<question>"`, `graphify path "A" "B"`, `graphify explain "X"`, `graphify affected "X"`.
+- After large refactors run `graphify update .` (local AST, no LLM) to refresh it. If `graphify-out/` is missing, fall back to normal search -- don't rebuild unasked.
