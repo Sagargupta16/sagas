@@ -5,10 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Default to read-only; the deploy job elevates only what Pages needs.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -17,17 +16,24 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # full history so per-chapter writing dates build
       - uses: withastro/action@v6
         with:
-          package-manager: pnpm@latest
+          package-manager: pnpm@11.10.0
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

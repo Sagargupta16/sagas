@@ -28,3 +28,8 @@ pnpm-debug.log*
 
 # graphify knowledge graph artifacts
 graphify-out/
+
+# playwright artifacts
+test-results/
+playwright-report/
+.playwright-mcp/
