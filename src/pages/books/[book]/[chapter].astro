@@ -86,7 +86,9 @@ const history = chapter.filePath
       <ReadAloud
         bookTitle={book.data.title}
         chapterTitle={chapter.data.title}
-        nextHref={next ? withBase(`/books/${slug}/${chapterSlug(next.id)}`) : undefined}
+        nextHref={next
+          ? withBase(`/books/${slug}/${chapterSlug(next.id)}`)
+          : undefined}
       />
 
       <div class="reader-tools">
@@ -97,7 +99,13 @@ const history = chapter.filePath
           aria-expanded="false"
           aria-controls="reader-prefs"
         >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="currentColor"
+            aria-hidden="true"
+          >
             <path d="M7 4h10v2H7zM5 9h14v2H5zM7 14h10v2H7zM9 19h6v2H9z"></path>
           </svg>
           Reading settings
@@ -139,7 +147,9 @@ const history = chapter.filePath
             <button type="button" data-value="2">Airy</button>
           </div>
         </div>
-        <button type="button" class="prefs-reset" data-prefs-reset>Reset to defaults</button>
+        <button type="button" class="prefs-reset" data-prefs-reset
+          >Reset to defaults</button
+        >
       </div>
     </header>
 
@@ -283,7 +293,8 @@ const history = chapter.filePath
     };
     document.addEventListener('keydown', (e) => {
       const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.metaKey || e.ctrlKey) return;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.metaKey || e.ctrlKey)
+        return;
       if (e.key === 'ArrowRight' || e.key === 'l')
         go(main.dataset.next || undefined);
       if (e.key === 'ArrowLeft' || e.key === 'h')
@@ -357,10 +368,7 @@ const history = chapter.filePath
         else if (pref === 'size') active = cur.size || '1.0625rem';
         else active = cur.leading || '1.75';
         seg.querySelectorAll<HTMLButtonElement>('button').forEach((b) => {
-          b.setAttribute(
-            'aria-pressed',
-            String(b.dataset.value === active),
-          );
+          b.setAttribute('aria-pressed', String(b.dataset.value === active));
         });
       });
     };

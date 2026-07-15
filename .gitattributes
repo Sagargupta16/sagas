@@ -1,0 +1,19 @@
+# Enforce LF on all text files so Prettier (endOfLine: "lf") agrees with the
+# working tree on every platform. Without this, Windows checkouts get CRLF
+# via core.autocrlf and the format check fails on every file.
+
+* text=auto eol=lf
+
+# Keep binary assets binary -- no normalization, no diffs.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.mp3 binary
+*.m4a binary

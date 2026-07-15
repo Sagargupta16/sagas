@@ -57,10 +57,7 @@ const jsonLd = {
     <meta name="twitter:description" content={description} />
 
     <title>{title}</title>
-    <script
-      type="application/ld+json"
-      set:html={JSON.stringify(jsonLd)}
-    />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
     {/* apply saved reader preferences before first paint (no FOUC) */}
     <script is:inline>
@@ -99,8 +96,16 @@ const jsonLd = {
           </span>
         </a>
         <a href={new URL(withBase('/rss.xml'), Astro.site)} class="feed">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
-            <path d="M4 11a9 9 0 0 1 9 9h2.5A11.5 11.5 0 0 0 4 8.5zM4 4a16 16 0 0 1 16 16h2.5A18.5 18.5 0 0 0 4 1.5zM6.5 17.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"></path>
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              d="M4 11a9 9 0 0 1 9 9h2.5A11.5 11.5 0 0 0 4 8.5zM4 4a16 16 0 0 1 16 16h2.5A18.5 18.5 0 0 0 4 1.5zM6.5 17.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"
+            ></path>
           </svg>
           Feed
         </a>

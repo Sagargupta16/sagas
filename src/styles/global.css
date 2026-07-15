@@ -16,7 +16,10 @@
   /* one accent: candle flame */
   --flame: light-dark(oklch(0.55 0.13 65), oklch(0.78 0.13 75));
   --flame-dim: light-dark(oklch(0.55 0.06 65), oklch(0.78 0.06 75));
-  --flame-wash: light-dark(oklch(0.55 0.13 65 / 0.08), oklch(0.78 0.13 75 / 0.1));
+  --flame-wash: light-dark(
+    oklch(0.55 0.13 65 / 0.08),
+    oklch(0.78 0.13 75 / 0.1)
+  );
 
   --font-display: 'Eczar Variable', Georgia, serif;
   --font-body: 'Literata Variable', Georgia, serif;

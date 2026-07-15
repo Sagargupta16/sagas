@@ -72,22 +72,41 @@ const totalChapters = chapters.length;
       <span class="continue-meta" data-continue-meta></span>
     </a>
 
-    <script type="application/json" data-reading-map set:html={JSON.stringify(readingMap)}
-    ></script>
+    <script
+      type="application/json"
+      data-reading-map
+      set:html={JSON.stringify(readingMap)}
+    />
     <script>
-      const el = document.querySelector('[data-continue]') as HTMLAnchorElement | null;
+      const el = document.querySelector(
+        '[data-continue]',
+      ) as HTMLAnchorElement | null;
       const mapEl = document.querySelector('[data-reading-map]');
       if (el && mapEl) {
-        let map: Record<string, { title: string; chapters: { id: string; title: string; href: string }[] }> = {};
+        let map: Record<
+          string,
+          {
+            title: string;
+            chapters: { id: string; title: string; href: string }[];
+          }
+        > = {};
         try {
           map = JSON.parse(mapEl.textContent || '{}');
         } catch {}
         // find the most recently-read book by its saved timestamp
-        let best: { href: string; book: string; chapter: string; pct: number; at: number } | null = null;
+        let best: {
+          href: string;
+          book: string;
+          chapter: string;
+          pct: number;
+          at: number;
+        } | null = null;
         for (const slug of Object.keys(map)) {
           let data: any = {};
           try {
-            data = JSON.parse(localStorage.getItem('sagas:progress:' + slug) || '{}');
+            data = JSON.parse(
+              localStorage.getItem('sagas:progress:' + slug) || '{}',
+            );
           } catch {}
           const lastId = data._last;
           if (!lastId) continue;
@@ -95,13 +114,23 @@ const totalChapters = chapters.length;
           const rec = data[lastId];
           if (!ch || !rec) continue;
           if (!best || rec.at > best.at) {
-            best = { href: ch.href, book: map[slug].title, chapter: ch.title, pct: rec.pct || 0, at: rec.at };
+            best = {
+              href: ch.href,
+              book: map[slug].title,
+              chapter: ch.title,
+              pct: rec.pct || 0,
+              at: rec.at,
+            };
           }
         }
         if (best) {
           el.href = best.href;
-          (el.querySelector('[data-continue-title]') as HTMLElement).textContent = best.chapter;
-          (el.querySelector('[data-continue-meta]') as HTMLElement).textContent =
+          (
+            el.querySelector('[data-continue-title]') as HTMLElement
+          ).textContent = best.chapter;
+          (
+            el.querySelector('[data-continue-meta]') as HTMLElement
+          ).textContent =
             best.book + (best.pct > 0 ? ' -- ' + best.pct + '% in' : '');
           el.removeAttribute('hidden');
         }
