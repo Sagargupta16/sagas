@@ -39,15 +39,53 @@ const minutes = readingMinutes(chapter.body);
 const history = chapter.filePath
   ? writingHistory(chapter.filePath)
   : { firstDrafted: null, lastRevised: null, revisions: 0 };
+
+const excerpt = (chapter.body ?? '')
+  .replaceAll(/[#>*_`\[\]]/g, '')
+  .trim()
+  .split(/\s+/)
+  .slice(0, 28)
+  .join(' ');
+const description = excerpt
+  ? `${excerpt}...`
+  : `Chapter ${chapter.data.order} of ${book.data.title}.`;
+
+const articleLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Chapter',
+  name: chapter.data.title,
+  position: chapter.data.order,
+  url: new URL(
+    withBase(`/books/${slug}/${chapterSlug(chapter.id)}`),
+    Astro.site,
+  ).href,
+  isPartOf: {
+    '@type': 'Book',
+    name: book.data.title,
+    url: new URL(withBase(`/books/${slug}`), Astro.site).href,
+  },
+  ...(chapter.data.publishedOn && {
+    datePublished: chapter.data.publishedOn.toISOString(),
+  }),
+  inLanguage: 'en',
+  author: {
+    '@type': 'Person',
+    name: 'Sagar Gupta',
+    url: 'https://sagargupta.online',
+  },
+};
 ---
 
 <Base
   title={`${chapter.data.title} -- ${book.data.title} -- sagas`}
-  description={`Chapter ${chapter.data.order} of ${book.data.title}.`}
+  description={description}
   ogType="article"
+  structuredData={[articleLd]}
+  publishedTime={chapter.data.publishedOn}
 >
   <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
   <main
+    id="main"
     class="read"
     data-book={slug}
     data-chapter={chapterSlug(chapter.id)}
@@ -113,40 +151,52 @@ const history = chapter.filePath
       </div>
 
       <div id="reader-prefs" class="prefs-panel glass" hidden>
-        <div class="prefs-row">
-          <span class="prefs-label">Theme</span>
+        <fieldset class="prefs-row">
+          <legend class="prefs-label">Theme</legend>
           <div class="seg" data-pref="theme">
             <button type="button" data-value="auto">Auto</button>
             <button type="button" data-value="dark">Dark</button>
             <button type="button" data-value="light">Light</button>
             <button type="button" data-value="sepia">Sepia</button>
           </div>
-        </div>
-        <div class="prefs-row">
-          <span class="prefs-label">Typeface</span>
+        </fieldset>
+        <fieldset class="prefs-row">
+          <legend class="prefs-label">Typeface</legend>
           <div class="seg" data-pref="font">
             <button type="button" data-value="serif">Serif</button>
             <button type="button" data-value="sans">Sans</button>
             <button type="button" data-value="mono">Mono</button>
           </div>
-        </div>
-        <div class="prefs-row">
-          <span class="prefs-label">Text size</span>
+        </fieldset>
+        <fieldset class="prefs-row">
+          <legend class="prefs-label">Text size</legend>
           <div class="seg" data-pref="size">
-            <button type="button" data-value="0.95rem">A</button>
-            <button type="button" data-value="1.0625rem">A</button>
-            <button type="button" data-value="1.2rem">A</button>
-            <button type="button" data-value="1.35rem">A</button>
+            <button type="button" data-value="0.95rem" aria-label="Small text"
+              >A</button
+            >
+            <button
+              type="button"
+              data-value="1.0625rem"
+              aria-label="Default text">A</button
+            >
+            <button type="button" data-value="1.2rem" aria-label="Large text"
+              >A</button
+            >
+            <button
+              type="button"
+              data-value="1.35rem"
+              aria-label="Extra large text">A</button
+            >
           </div>
-        </div>
-        <div class="prefs-row">
-          <span class="prefs-label">Line spacing</span>
+        </fieldset>
+        <fieldset class="prefs-row">
+          <legend class="prefs-label">Line spacing</legend>
           <div class="seg" data-pref="leading">
             <button type="button" data-value="1.55">Tight</button>
             <button type="button" data-value="1.75">Cozy</button>
             <button type="button" data-value="2">Airy</button>
           </div>
-        </div>
+        </fieldset>
         <button type="button" class="prefs-reset" data-prefs-reset
           >Reset to defaults</button
         >
@@ -189,219 +239,279 @@ const history = chapter.filePath
       )
     }
 
-    <nav class="pager rise">
-      {
-        prev ? (
-          <a
-            href={withBase(`/books/${slug}/${chapterSlug(prev.id)}`)}
-            class="page prev"
-          >
-            <span class="dir">&larr; Previous</span>
-            <span class="page-title">{prev.data.title}</span>
-          </a>
-        ) : (
-          <span class="page placeholder" />
-        )
-      }
-      {
-        next && (
-          <a
-            href={withBase(`/books/${slug}/${chapterSlug(next.id)}`)}
-            class="page next"
-          >
-            <span class="dir">Next &rarr;</span>
-            <span class="page-title">{next.data.title}</span>
-          </a>
-        )
-      }
-    </nav>
+    {
+      (prev || next) && (
+        <nav class="pager rise" aria-label="Chapter navigation">
+          {prev ? (
+            <a
+              href={withBase(`/books/${slug}/${chapterSlug(prev.id)}`)}
+              class="page prev"
+            >
+              <span class="dir">&larr; Previous</span>
+              <span class="page-title">{prev.data.title}</span>
+            </a>
+          ) : (
+            <span class="page placeholder" aria-hidden="true" />
+          )}
+          {next && (
+            <a
+              href={withBase(`/books/${slug}/${chapterSlug(next.id)}`)}
+              class="page next"
+            >
+              <span class="dir">Next &rarr;</span>
+              <span class="page-title">{next.data.title}</span>
+            </a>
+          )}
+        </nav>
+      )
+    }
   </main>
-</Base>
 
-<script>
-  const main = document.querySelector('main.read') as HTMLElement | null;
-  const bar = document.getElementById('progress-bar');
-  const article = document.querySelector('.prose') as HTMLElement | null;
-  const root = document.documentElement;
+  <script>
+    const main = document.querySelector('main.read') as HTMLElement | null;
+    const bar = document.getElementById('progress-bar');
+    const article = document.querySelector('.prose') as HTMLElement | null;
+    const root = document.documentElement;
+    const reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
 
-  // --- Reading progress: live bar + persist scroll % per chapter ---
-  if (bar && article && main) {
-    const book = main.dataset.book || '';
-    const chapter = main.dataset.chapter || '';
-    const key = 'sagas:progress';
-    const readKey = (b: string) => `${key}:${b}`;
+    // --- Reading progress: live bar + persisted scroll % per chapter ---
+    if (bar && article && main) {
+      const book = main.dataset.book || '';
+      const chapter = main.dataset.chapter || '';
+      const storageKey = `sagas:progress:${book}`;
 
-    const load = (): Record<string, any> => {
+      type ProgressRecord = { pct: number; at: number };
+      type ProgressStore = Record<string, ProgressRecord> & { _last?: string };
+
+      const load = (): ProgressStore => {
+        try {
+          return JSON.parse(localStorage.getItem(storageKey) || '{}');
+        } catch {
+          return {} as ProgressStore;
+        }
+      };
+
+      // Read the saved position FIRST -- before anything writes -- so the
+      // resume offer is based on the previous visit, not this page load.
+      const saved = load()[chapter];
+
+      const totalScrollable = () => article.offsetHeight - window.innerHeight;
+
+      const currentPct = () => {
+        const total = totalScrollable();
+        if (total <= 0) {
+          // Chapter fits in the viewport: reading it means seeing it all.
+          return 100;
+        }
+        const scrolled = window.scrollY - article.offsetTop;
+        return Math.min(100, Math.max(0, (scrolled / total) * 100));
+      };
+
+      let lastSavedPct = -1;
+      // Persist only after real engagement (a scroll, or a few seconds of
+      // dwell). A quick load/reload must never clobber the saved position.
+      let engaged = false;
+      setTimeout(() => {
+        engaged = true;
+      }, 3000);
+      const persist = () => {
+        if (!engaged) return;
+        const pct = Math.round(currentPct());
+        if (pct === lastSavedPct) return;
+        lastSavedPct = pct;
+        try {
+          const data = load();
+          data[chapter] = { pct, at: Date.now() };
+          data._last = chapter;
+          localStorage.setItem(storageKey, JSON.stringify(data));
+        } catch {
+          /* storage full or blocked -- reading still works */
+        }
+      };
+
+      // Visual bar updates every frame; storage writes are debounced so we
+      // are not serializing JSON on every scroll event.
+      let ticking = false;
+      let saveTimer: ReturnType<typeof setTimeout> | undefined;
+      const update = () => {
+        bar.style.width = currentPct() + '%';
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(persist, 250);
+        ticking = false;
+      };
+      const onScroll = () => {
+        engaged = true;
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(update);
+        }
+      };
+      bar.style.width = currentPct() + '%';
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll, { passive: true });
+      window.addEventListener('pagehide', persist);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') persist();
+      });
+
+      // Offer to resume mid-chapter positions from the previous visit.
+      if (saved && saved.pct > 5 && saved.pct < 95) {
+        const y = article.offsetTop + (totalScrollable() * saved.pct) / 100;
+        const resume = document.createElement('button');
+        resume.type = 'button';
+        resume.className = 'resume-toast glass';
+        resume.textContent = `Resume where you left off (${saved.pct}%)`;
+        resume.addEventListener('click', () => {
+          window.scrollTo({
+            top: y,
+            behavior: reduceMotion ? 'auto' : 'smooth',
+          });
+          resume.remove();
+        });
+        document.body.appendChild(resume);
+        setTimeout(() => resume.remove(), 8000);
+      }
+    }
+
+    // --- Keyboard + swipe chapter navigation ---
+    if (main) {
+      const go = (url: string | undefined) => {
+        if (url) window.location.href = url;
+      };
+      document.addEventListener('keydown', (e) => {
+        // Never hijack keys aimed at interactive elements or modified combos.
+        const target = e.target as HTMLElement | null;
+        if (
+          e.defaultPrevented ||
+          e.altKey ||
+          e.ctrlKey ||
+          e.metaKey ||
+          e.shiftKey ||
+          target?.closest(
+            'a, button, input, select, textarea, [contenteditable]',
+          )
+        ) {
+          return;
+        }
+        if (e.key === 'ArrowRight' || e.key === 'l')
+          go(main.dataset.next || undefined);
+        if (e.key === 'ArrowLeft' || e.key === 'h')
+          go(main.dataset.prev || undefined);
+      });
+      let sx = 0,
+        sy = 0;
+      document.addEventListener(
+        'touchstart',
+        (e) => {
+          sx = e.changedTouches[0].screenX;
+          sy = e.changedTouches[0].screenY;
+        },
+        { passive: true },
+      );
+      document.addEventListener(
+        'touchend',
+        (e) => {
+          const dx = e.changedTouches[0].screenX - sx;
+          const dy = e.changedTouches[0].screenY - sy;
+          if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 2) {
+            go((dx < 0 ? main.dataset.next : main.dataset.prev) || undefined);
+          }
+        },
+        { passive: true },
+      );
+    }
+
+    // --- Reader preferences panel ---
+    const PREFS_KEY = 'sagas:prefs';
+    const readPrefs = (): Record<string, string> => {
       try {
-        return JSON.parse(localStorage.getItem(readKey(book)) || '{}');
+        return JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
       } catch {
         return {};
       }
     };
-    const save = (pct: number) => {
-      try {
-        const data = load();
-        data[chapter] = { pct: Math.round(pct), at: Date.now() };
-        data._last = chapter;
-        localStorage.setItem(readKey(book), JSON.stringify(data));
-      } catch {}
-    };
-
-    let ticking = false;
-    const update = () => {
-      const start = article.offsetTop;
-      const total = article.offsetHeight - window.innerHeight;
-      const scrolled = window.scrollY - start;
-      const pct =
-        total > 0 ? Math.min(100, Math.max(0, (scrolled / total) * 100)) : 0;
-      bar.style.width = pct + '%';
-      save(pct);
-      ticking = false;
-    };
-    const onScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(update);
+    const applyPref = (pref: string, value: string) => {
+      if (pref === 'theme') {
+        if (value === 'auto') delete root.dataset.theme;
+        else root.dataset.theme = value;
+      } else if (pref === 'font') {
+        if (value === 'serif') delete root.dataset.readerFont;
+        else root.dataset.readerFont = value;
+      } else if (pref === 'size') {
+        root.style.setProperty('--reader-size', value);
+      } else if (pref === 'leading') {
+        root.style.setProperty('--reader-leading', value);
       }
     };
-    update();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
-
-    // Offer to resume if we have a saved position for this chapter.
-    const saved = load()[chapter];
-    if (saved && saved.pct > 5 && saved.pct < 95) {
-      const y =
-        article.offsetTop +
-        ((article.offsetHeight - window.innerHeight) * saved.pct) / 100;
-      const resume = document.createElement('button');
-      resume.className = 'resume-toast glass';
-      resume.textContent = `Resume where you left off (${saved.pct}%)`;
-      resume.addEventListener('click', () => {
-        window.scrollTo({ top: y, behavior: 'smooth' });
-        resume.remove();
-      });
-      document.body.appendChild(resume);
-      setTimeout(() => resume.remove(), 8000);
-    }
-  }
-
-  // --- Keyboard + swipe chapter navigation ---
-  if (main) {
-    const go = (url: string | undefined) => {
-      if (url) window.location.href = url;
+    const savePref = (pref: string, value: string) => {
+      const p = readPrefs();
+      if (pref === 'theme') p.theme = value === 'auto' ? '' : value;
+      else if (pref === 'font') p.font = value === 'serif' ? '' : value;
+      else if (pref === 'size') p.size = value;
+      else if (pref === 'leading') p.leading = value;
+      try {
+        localStorage.setItem(PREFS_KEY, JSON.stringify(p));
+      } catch {
+        /* preferences stay session-only if storage is blocked */
+      }
     };
-    document.addEventListener('keydown', (e) => {
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.metaKey || e.ctrlKey)
-        return;
-      if (e.key === 'ArrowRight' || e.key === 'l')
-        go(main.dataset.next || undefined);
-      if (e.key === 'ArrowLeft' || e.key === 'h')
-        go(main.dataset.prev || undefined);
-    });
-    let sx = 0,
-      sy = 0;
-    document.addEventListener(
-      'touchstart',
-      (e) => {
-        sx = e.changedTouches[0].screenX;
-        sy = e.changedTouches[0].screenY;
-      },
-      { passive: true },
-    );
-    document.addEventListener(
-      'touchend',
-      (e) => {
-        const dx = e.changedTouches[0].screenX - sx;
-        const dy = e.changedTouches[0].screenY - sy;
-        if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 2) {
-          go((dx < 0 ? main.dataset.next : main.dataset.prev) || undefined);
-        }
-      },
-      { passive: true },
-    );
-  }
 
-  // --- Reader preferences panel ---
-  const PREFS_KEY = 'sagas:prefs';
-  const readPrefs = (): Record<string, string> => {
-    try {
-      return JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
-    } catch {
-      return {};
-    }
-  };
-  const applyPref = (pref: string, value: string) => {
-    if (pref === 'theme') {
-      if (value === 'auto') delete root.dataset.theme;
-      else root.dataset.theme = value;
-    } else if (pref === 'font') {
-      if (value === 'serif') delete root.dataset.readerFont;
-      else root.dataset.readerFont = value;
-    } else if (pref === 'size') {
-      root.style.setProperty('--reader-size', value);
-    } else if (pref === 'leading') {
-      root.style.setProperty('--reader-leading', value);
-    }
-  };
-  const savePref = (pref: string, value: string) => {
-    const p = readPrefs();
-    // store 'theme'/'font' as the raw value; size/leading map to their vars
-    if (pref === 'theme') p.theme = value === 'auto' ? '' : value;
-    else if (pref === 'font') p.font = value === 'serif' ? '' : value;
-    else if (pref === 'size') p.size = value;
-    else if (pref === 'leading') p.leading = value;
-    localStorage.setItem(PREFS_KEY, JSON.stringify(p));
-  };
+    const panel = document.getElementById('reader-prefs');
+    const toggle = document.querySelector('[data-prefs-toggle]');
+    if (panel && toggle) {
+      const markActive = () => {
+        const cur = readPrefs();
+        panel.querySelectorAll<HTMLElement>('.seg').forEach((seg) => {
+          const pref = seg.dataset.pref!;
+          let active: string;
+          if (pref === 'theme') active = cur.theme || 'auto';
+          else if (pref === 'font') active = cur.font || 'serif';
+          else if (pref === 'size') active = cur.size || '1.0625rem';
+          else active = cur.leading || '1.75';
+          seg.querySelectorAll<HTMLButtonElement>('button').forEach((b) => {
+            b.setAttribute('aria-pressed', String(b.dataset.value === active));
+          });
+        });
+      };
+      markActive();
 
-  const panel = document.getElementById('reader-prefs');
-  const toggle = document.querySelector('[data-prefs-toggle]');
-  if (panel && toggle) {
-    const markActive = () => {
-      const cur = readPrefs();
+      toggle.addEventListener('click', () => {
+        const open = panel.hasAttribute('hidden');
+        if (open) panel.removeAttribute('hidden');
+        else panel.setAttribute('hidden', '');
+        toggle.setAttribute('aria-expanded', String(open));
+      });
+
       panel.querySelectorAll<HTMLElement>('.seg').forEach((seg) => {
         const pref = seg.dataset.pref!;
-        let active: string;
-        if (pref === 'theme') active = cur.theme || 'auto';
-        else if (pref === 'font') active = cur.font || 'serif';
-        else if (pref === 'size') active = cur.size || '1.0625rem';
-        else active = cur.leading || '1.75';
         seg.querySelectorAll<HTMLButtonElement>('button').forEach((b) => {
-          b.setAttribute('aria-pressed', String(b.dataset.value === active));
+          b.addEventListener('click', () => {
+            applyPref(pref, b.dataset.value!);
+            savePref(pref, b.dataset.value!);
+            markActive();
+          });
         });
       });
-    };
-    markActive();
 
-    toggle.addEventListener('click', () => {
-      const open = panel.hasAttribute('hidden');
-      if (open) panel.removeAttribute('hidden');
-      else panel.setAttribute('hidden', '');
-      toggle.setAttribute('aria-expanded', String(open));
-    });
-
-    panel.querySelectorAll<HTMLElement>('.seg').forEach((seg) => {
-      const pref = seg.dataset.pref!;
-      seg.querySelectorAll<HTMLButtonElement>('button').forEach((b) => {
-        b.addEventListener('click', () => {
-          applyPref(pref, b.dataset.value!);
-          savePref(pref, b.dataset.value!);
+      panel
+        .querySelector('[data-prefs-reset]')
+        ?.addEventListener('click', () => {
+          try {
+            localStorage.removeItem(PREFS_KEY);
+          } catch {
+            /* nothing stored */
+          }
+          delete root.dataset.theme;
+          delete root.dataset.readerFont;
+          root.style.removeProperty('--reader-size');
+          root.style.removeProperty('--reader-leading');
           markActive();
         });
-      });
-    });
-
-    panel.querySelector('[data-prefs-reset]')?.addEventListener('click', () => {
-      localStorage.removeItem(PREFS_KEY);
-      delete root.dataset.theme;
-      delete root.dataset.readerFont;
-      root.style.removeProperty('--reader-size');
-      root.style.removeProperty('--reader-leading');
-      markActive();
-    });
-  }
-</script>
+    }
+  </script>
+</Base>
 
 <style>
   .progress {
@@ -413,6 +523,14 @@ const history = chapter.filePath
     z-index: 20;
     background: transparent;
     pointer-events: none;
+  }
+
+  .progress span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--flame);
+    transition: width 80ms linear;
   }
 
   /* reader tools + preferences panel */
@@ -456,6 +574,9 @@ const history = chapter.filePath
   .prefs-row {
     display: grid;
     gap: var(--space-xs);
+    border: none;
+    margin: 0;
+    padding: 0;
   }
 
   .prefs-label {
@@ -463,6 +584,7 @@ const history = chapter.filePath
     color: var(--ink-soft);
     font-variant-caps: all-small-caps;
     letter-spacing: 0.06em;
+    padding: 0;
   }
 
   .seg {
@@ -535,14 +657,6 @@ const history = chapter.filePath
     color: var(--ink);
     cursor: pointer;
     animation: rise var(--duration-slow) var(--ease-out);
-  }
-
-  .progress span {
-    display: block;
-    width: 0;
-    height: 100%;
-    background: var(--flame);
-    transition: width 80ms linear;
   }
 
   .chapter-head {
@@ -701,21 +815,25 @@ const history = chapter.filePath
     border: 1px solid var(--line-soft);
     border-radius: var(--radius);
     background: var(--surface-raised);
+    box-shadow: var(--shadow-e1);
     text-decoration: none;
     color: var(--ink);
     transition:
-      border-color 200ms var(--ease-out),
-      transform 200ms var(--ease-out);
+      border-color var(--duration-base) var(--ease-out),
+      box-shadow var(--duration-base) var(--ease-out),
+      transform var(--duration-base) var(--ease-out);
   }
 
   a.page:hover {
     border-color: var(--flame-dim);
+    box-shadow: var(--shadow-e2);
     transform: translateY(-2px);
   }
 
   .page.placeholder {
     background: transparent;
     border: none;
+    box-shadow: none;
     pointer-events: none;
   }
 
