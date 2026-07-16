@@ -25,11 +25,11 @@ The product is **reading long-form fiction and essays on a phone, often at night
 
 ## 2. Performance (mobile-first static)
 
-- Astro ships **zero client JS** by default -- keep it that way. Any new `<script>` or client island must justify itself; this is a reading site, not an app.
+- Astro ships **no framework runtime** -- client JS is limited to the small inline reader scripts (progress, preferences, nav, TTS). Any NEW `<script>` must justify itself against the reading experience; this is a reading site, not an app.
 - **Fonts** are the main weight: self-hosted Eczar + Literata via Fontsource (`@fontsource-variable/*/index.css`). Only import weights actually used; never add a Google Fonts CDN link.
 - **LCP** is the hero heading (text) on the homepage and the first paragraph on a chapter -- text LCP is fast; don't introduce a large hero image without `loading="eager"` + width/height.
 - **CLS**: reserve space. Skeleton rows have fixed heights; any future image needs explicit `width`/`height` or an aspect-ratio box.
-- **Motion**: the `rise` and `shimmer` animations use transform/opacity/background-position only (compositor-friendly). Do not animate layout props (width/height/top). Motion is intentional here -- do NOT add `prefers-reduced-motion` gating (house rule).
+- **Motion**: the `rise` and `shimmer` animations use transform/opacity/background-position only (compositor-friendly). Do not animate layout props (width/height/top). Every animation MUST have a `prefers-reduced-motion` path -- global.css freezes entrances, shimmer, and the ambient glow when the OS asks (WCAG 2.3.3).
 - Tools: `pnpm build` prints per-route output; watch for unexpected JS. Verify a real mobile viewport via `preview_*`.
 
 ## 3. SEO
@@ -56,6 +56,6 @@ The product is **reading long-form fiction and essays on a phone, often at night
 
 - Mobile-first; most readers are on phones.
 - No em/en dash characters anywhere (chat, code, copy, metadata) -- `--` or `-`.
-- Motion stays visible; never add `prefers-reduced-motion` or tone down animation.
+- Motion is visible by default AND fully disabled under `prefers-reduced-motion` -- both paths ship together, always.
 - Internal links go through `withBase()`; the site lives at a subpath (`/sagas`).
 - Chapter prose is Sagar's voice -- never "fix" it here; this gate is about the shell around the words, not the words.

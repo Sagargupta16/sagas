@@ -8,14 +8,23 @@ interface Props {
   title: string;
   description: string;
   ogType?: 'website' | 'article' | 'book';
+  /** Extra JSON-LD blocks (Book, Article) supplied by content pages. */
+  structuredData?: Record<string, unknown>[];
+  publishedTime?: Date;
 }
 
-const { title, description, ogType = 'website' } = Astro.props;
+const {
+  title,
+  description,
+  ogType = 'website',
+  structuredData = [],
+  publishedTime,
+} = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const siteName = 'sagas';
 
-const jsonLd = {
+const websiteLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: siteName,
@@ -29,6 +38,13 @@ const jsonLd = {
     url: 'https://sagargupta.online',
   },
 };
+
+/** Serialize JSON for a script element without letting `</script>` or HTML
+ *  comment openers in content break out of the block. */
+const safeJson = (value: unknown) =>
+  JSON.stringify(value).replaceAll('<', '\\u003c');
+
+const ldBlocks = [websiteLd, ...structuredData];
 ---
 
 <!doctype html>
@@ -52,15 +68,28 @@ const jsonLd = {
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
+    {
+      publishedTime && (
+        <meta
+          property="article:published_time"
+          content={publishedTime.toISOString()}
+        />
+      )
+    }
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
 
     <title>{title}</title>
-    <script
-      type="application/ld+json"
-      set:html={JSON.stringify(jsonLd)}
-    />
+    {
+      ldBlocks.map((block) => (
+        <script
+          is:inline
+          type="application/ld+json"
+          set:html={safeJson(block)}
+        />
+      ))
+    }
 
     {/* apply saved reader preferences before first paint (no FOUC) */}
     <script is:inline>
@@ -77,9 +106,45 @@ const jsonLd = {
     </script>
   </head>
   <body>
+    <a href="#main" class="skip-link">Skip to content</a>
+
+    {/* ambient candlelight: fixed, decorative, behind everything */}
+    <div class="ambient" aria-hidden="true">
+      <div class="ambient-dots"></div>
+      <div class="ambient-glow"></div>
+      <div class="ambient-vignette"></div>
+    </div>
+
+    {/* paper grain: SVG turbulence, no asset, ~600 bytes */}
+    <div class="grain" aria-hidden="true">
+      <svg
+        width="100%"
+        height="100%"
+        xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <filter id="paper-grain">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.85"
+            numOctaves="2"
+            stitchTiles="stitch"></feTurbulence>
+          <feColorMatrix
+            type="matrix"
+            values="0 0 0 0 0
+                    0 0 0 0 0
+                    0 0 0 0 0
+                    0 0 0 0.18 0"
+          ></feColorMatrix>
+        </filter>
+        <rect width="100%" height="100%" filter="url(#paper-grain)"></rect>
+      </svg>
+    </div>
+
     <header>
-      <nav class="wrap">
-        <a href={withBase('/')} class="wordmark" aria-label="Sagas -- home">
+      <nav class="wrap" aria-label="Site">
+        <a href={withBase('/')} class="wordmark" aria-label="Sagas home">
           <span class="mark" aria-hidden="true">
             <svg
               class="flame"
@@ -99,8 +164,16 @@ const jsonLd = {
           </span>
         </a>
         <a href={new URL(withBase('/rss.xml'), Astro.site)} class="feed">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
-            <path d="M4 11a9 9 0 0 1 9 9h2.5A11.5 11.5 0 0 0 4 8.5zM4 4a16 16 0 0 1 16 16h2.5A18.5 18.5 0 0 0 4 1.5zM6.5 17.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"></path>
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              d="M4 11a9 9 0 0 1 9 9h2.5A11.5 11.5 0 0 0 4 8.5zM4 4a16 16 0 0 1 16 16h2.5A18.5 18.5 0 0 0 4 1.5zM6.5 17.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"
+            ></path>
           </svg>
           Feed
         </a>
@@ -165,6 +238,7 @@ const jsonLd = {
     backdrop-filter: blur(var(--blur)) saturate(1.3);
     -webkit-backdrop-filter: blur(var(--blur)) saturate(1.3);
     border-bottom: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-e1);
   }
 
   nav {
@@ -255,6 +329,8 @@ const jsonLd = {
     border-top: 1px solid var(--line);
     margin-top: auto;
     background: var(--surface-sunken);
+    position: relative;
+    z-index: 1;
   }
 
   .foot-grid {

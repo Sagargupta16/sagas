@@ -11,7 +11,12 @@ const { url, title, label = 'Listen to this chapter' } = Astro.props;
 <section class="audio glass" aria-label={`Audiobook for ${title}`}>
   <div class="audio-head">
     <span class="audio-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
         <path d="M3 10v4h4l5 5V5L7 10H3z"></path>
         <path d="M16 8a5 5 0 0 1 0 8"></path>
         <path d="M19 5a9 9 0 0 1 0 14"></path>

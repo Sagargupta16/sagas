@@ -32,14 +32,30 @@ const chapters = (
 
 const { Content } = await render(book);
 const hasFormats = book.data.pdfUrl || book.data.audioUrl;
+
+const bookLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Book',
+  name: book.data.title,
+  url: new URL(withBase(`/books/${slug}`), Astro.site).href,
+  abstract: book.data.synopsis,
+  inLanguage: 'en',
+  creativeWorkStatus: book.data.status,
+  author: {
+    '@type': 'Person',
+    name: 'Sagar Gupta',
+    url: 'https://sagargupta.online',
+  },
+};
 ---
 
 <Base
   title={`${book.data.title} -- sagas`}
   description={book.data.synopsis}
   ogType="book"
+  structuredData={[bookLd]}
 >
-  <main>
+  <main id="main">
     <article class="rise">
       <p class="eyebrow">
         <a href={withBase('/')} class="back">Library</a>
@@ -208,17 +224,13 @@ const hasFormats = book.data.pdfUrl || book.data.audioUrl;
     list-style: none;
     display: grid;
     gap: var(--space-sm);
-    /* two-up on wide screens so a long book scans fast, one column on phones */
-    grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+    /* min(100%, 22rem) keeps tracks from forcing horizontal overflow on
+       narrow phones (the raw 22rem minimum overflowed below ~380px) */
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
   }
 
   .chapter-list li {
     display: block;
-  }
-
-  .chapter-link,
-  .chapter-list li[aria-hidden] > * ~ * {
-    /* layout shared below */
   }
 
   .chapter-link {
@@ -229,15 +241,18 @@ const hasFormats = book.data.pdfUrl || book.data.audioUrl;
     border: 1px solid var(--line-soft);
     border-radius: var(--radius);
     background: var(--surface-raised);
+    box-shadow: var(--shadow-e1);
     text-decoration: none;
     color: var(--ink);
     transition:
-      border-color 200ms var(--ease-out),
-      transform 200ms var(--ease-out);
+      border-color var(--duration-base) var(--ease-out),
+      box-shadow var(--duration-base) var(--ease-out),
+      transform var(--duration-base) var(--ease-out);
   }
 
   .chapter-link:hover {
     border-color: var(--flame-dim);
+    box-shadow: var(--shadow-e2);
     transform: translateX(3px);
   }
 

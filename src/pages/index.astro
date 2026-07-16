@@ -35,6 +35,9 @@ const readingMap = Object.fromEntries(
   }),
 );
 
+/** Serialize for an inline JSON script without </script> breakout. */
+const safeJson = JSON.stringify(readingMap).replaceAll('<', '\\u003c');
+
 const shelves = (Object.keys(SHELVES) as Shelf[]).map((shelf) => ({
   shelf,
   ...SHELVES[shelf],
@@ -45,25 +48,88 @@ const shelves = (Object.keys(SHELVES) as Shelf[]).map((shelf) => ({
 
 const totalBooks = books.length;
 const totalChapters = chapters.length;
+const libraryEmpty = totalBooks === 0;
+
+/** What each empty shelf promises, so the blank state reads as intent. */
+const EMPTY_SHELF_NOTES: Record<Shelf, string> = {
+  fantasy:
+    'An original world is taking shape here: its people, its rules, its long arc. The first chapter arrives the moment it is worth reading.',
+  fanfic:
+    'Stories set in universes worth returning to. Free and non-commercial, always; the first tale is still being chosen.',
+  essays:
+    'One perspective at a time: essays on how the world looks from here. The first one is being argued with itself right now.',
+};
 ---
 
 <Base
   title="sagas -- a living library of unfinished books"
   description="Original fantasy, fan fiction, and essays by Sagar Gupta, written in the open one chapter at a time."
 >
-  <main>
+  <main id="main">
     <section class="hero rise">
-      <p class="eyebrow">Work in progress</p>
-      <h1>A living library of unfinished books.</h1>
-      <p class="lede">
-        Original fantasy, fan fiction, and essays -- written in the open, one
-        chapter at a time. Every draft is public. Every revision is honest.
-      </p>
-      <p class="stats">
-        <span><strong>{totalBooks}</strong> books taking shape</span>
-        <span><strong>{totalChapters}</strong> chapters written</span>
-        <span><strong>3</strong> shelves</span>
-      </p>
+      <div class="hero-copy">
+        <p class="eyebrow">
+          <span class="spark" aria-hidden="true">&#10022;</span>
+          Written in the open
+        </p>
+        <h1>A living library of unfinished books.</h1>
+        <p class="lede">
+          Original fantasy, fan fiction, and essays -- one chapter at a time.
+          Every draft is public. Every revision is honest. Git history is the
+          writing log.
+        </p>
+        <p class="stats" aria-label="Library status">
+          {
+            libraryEmpty ? (
+              <>
+                <span>
+                  <strong>3</strong> shelves, built and waiting
+                </span>
+                <span>
+                  <strong>1st</strong> book underway
+                </span>
+              </>
+            ) : (
+              <>
+                <span>
+                  <strong>{totalBooks}</strong> book
+                  {totalBooks === 1 ? '' : 's'}
+                  taking shape
+                </span>
+                <span>
+                  <strong>{totalChapters}</strong> chapter
+                  {totalChapters === 1 ? '' : 's'} written
+                </span>
+                <span>
+                  <strong>3</strong> shelves
+                </span>
+              </>
+            )
+          }
+        </p>
+      </div>
+
+      {/* Tilted ghost plates (kalchar hero pattern): the books to come. */}
+      <div class="hero-plates" aria-hidden="true">
+        <div class="plate plate-back">
+          <span class="plate-spine"></span>
+          <span class="skeleton skeleton-line" style="width: 60%"></span>
+          <span class="skeleton skeleton-line" style="width: 85%"></span>
+          <span class="skeleton skeleton-line" style="width: 40%"></span>
+        </div>
+        <div class="plate plate-front">
+          <span class="plate-spine"></span>
+          <span class="plate-flame">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path
+                d="M12 2c1.2 3.3-1.8 4.8-1.8 7.4 0 1.3 1 2.1 1 2.1s-.4-2.2 1.3-3.4c1.9 2 3.5 3.6 3.5 6.2A6 6 0 0 1 6 14.3C6 9.8 11 8.4 12 2Z"
+              ></path>
+            </svg>
+          </span>
+          <span class="plate-title">Chapter One</span>
+          <span class="plate-sub">is being written</span>
+        </div>
+      </div>
     </section>
 
     <a class="continue glass" data-continue hidden href="#">
@@ -72,37 +138,72 @@ const totalChapters = chapters.length;
       <span class="continue-meta" data-continue-meta></span>
     </a>
 
-    <script type="application/json" data-reading-map set:html={JSON.stringify(readingMap)}
-    ></script>
+    <script
+      is:inline
+      type="application/json"
+      data-reading-map
+      set:html={safeJson}
+    />
     <script>
-      const el = document.querySelector('[data-continue]') as HTMLAnchorElement | null;
+      const el = document.querySelector(
+        '[data-continue]',
+      ) as HTMLAnchorElement | null;
       const mapEl = document.querySelector('[data-reading-map]');
       if (el && mapEl) {
-        let map: Record<string, { title: string; chapters: { id: string; title: string; href: string }[] }> = {};
+        let map: Record<
+          string,
+          {
+            title: string;
+            chapters: { id: string; title: string; href: string }[];
+          }
+        > = {};
         try {
           map = JSON.parse(mapEl.textContent || '{}');
-        } catch {}
+        } catch {
+          map = {};
+        }
         // find the most recently-read book by its saved timestamp
-        let best: { href: string; book: string; chapter: string; pct: number; at: number } | null = null;
+        let best: {
+          href: string;
+          book: string;
+          chapter: string;
+          pct: number;
+          at: number;
+        } | null = null;
         for (const slug of Object.keys(map)) {
-          let data: any = {};
+          let data: Record<string, { pct?: number; at: number }> & {
+            _last?: string;
+          } = {};
           try {
-            data = JSON.parse(localStorage.getItem('sagas:progress:' + slug) || '{}');
-          } catch {}
+            data = JSON.parse(
+              localStorage.getItem('sagas:progress:' + slug) || '{}',
+            );
+          } catch {
+            continue;
+          }
           const lastId = data._last;
-          if (!lastId) continue;
+          if (typeof lastId !== 'string') continue;
           const ch = map[slug].chapters.find((c) => c.id === lastId);
           const rec = data[lastId];
-          if (!ch || !rec) continue;
+          if (!ch || !rec || typeof rec.at !== 'number') continue;
           if (!best || rec.at > best.at) {
-            best = { href: ch.href, book: map[slug].title, chapter: ch.title, pct: rec.pct || 0, at: rec.at };
+            best = {
+              href: ch.href,
+              book: map[slug].title,
+              chapter: ch.title,
+              pct: rec.pct || 0,
+              at: rec.at,
+            };
           }
         }
         if (best) {
           el.href = best.href;
-          (el.querySelector('[data-continue-title]') as HTMLElement).textContent = best.chapter;
-          (el.querySelector('[data-continue-meta]') as HTMLElement).textContent =
-            best.book + (best.pct > 0 ? ' -- ' + best.pct + '% in' : '');
+          const titleEl = el.querySelector('[data-continue-title]');
+          const metaEl = el.querySelector('[data-continue-meta]');
+          if (titleEl) titleEl.textContent = best.chapter;
+          if (metaEl)
+            metaEl.textContent =
+              best.book + (best.pct > 0 ? ' -- ' + best.pct + '% in' : '');
           el.removeAttribute('hidden');
         }
       }
@@ -120,49 +221,56 @@ const totalChapters = chapters.length;
           </div>
           <p class="blurb">{blurb}</p>
 
-          <ul>
-            {books.map((book) => {
-              const slug = bookSlug(book.id);
-              const count = chapterCount(slug);
-              return (
-                <li>
-                  <a href={withBase(`/books/${slug}`)} class="entry">
-                    <span class="entry-top">
-                      <span class="book-title">{book.data.title}</span>
-                      <span class="pill" data-status={book.data.status}>
-                        {STATUS_LABELS[book.data.status]}
-                      </span>
-                    </span>
-                    <span class="synopsis">{book.data.synopsis}</span>
-                    <span class="meta">
-                      {count > 0 && (
-                        <span>
-                          {count} chapter{count === 1 ? '' : 's'}
-                        </span>
-                      )}
-                      {book.data.universe && <span>{book.data.universe}</span>}
-                      <span>since {formatDate(book.data.startedOn)}</span>
-                      <FormatBadges
-                        pdfUrl={book.data.pdfUrl}
-                        audioUrl={book.data.audioUrl}
-                      />
-                    </span>
-                  </a>
-                </li>
-              );
-            })}
-
-            <li aria-hidden="true" class="ghost-li">
-              <div class="entry ghost">
-                <span class="entry-top">
-                  <span class="skeleton skeleton-line title" />
-                  <span class="pill">in the works</span>
-                </span>
-                <span class="skeleton skeleton-line" style="width: 92%" />
-                <span class="skeleton skeleton-line" style="width: 70%" />
+          {books.length === 0 ? (
+            <div class="shelf-empty">
+              <div class="ghost-stack" aria-hidden="true">
+                <span class="ghost-book" />
+                <span class="ghost-book" />
+                <span class="ghost-book" />
               </div>
-            </li>
-          </ul>
+              <div class="shelf-empty-copy">
+                <p class="shelf-empty-title">
+                  This shelf opens with its first book.
+                </p>
+                <p class="shelf-empty-note">{EMPTY_SHELF_NOTES[shelf]}</p>
+              </div>
+            </div>
+          ) : (
+            <ul>
+              {books.map((book) => {
+                const slug = bookSlug(book.id);
+                const count = chapterCount(slug);
+                return (
+                  <li>
+                    <a href={withBase(`/books/${slug}`)} class="entry">
+                      <span class="entry-top">
+                        <span class="book-title">{book.data.title}</span>
+                        <span class="pill" data-status={book.data.status}>
+                          {STATUS_LABELS[book.data.status]}
+                        </span>
+                      </span>
+                      <span class="synopsis">{book.data.synopsis}</span>
+                      <span class="meta">
+                        {count > 0 && (
+                          <span>
+                            {count} chapter{count === 1 ? '' : 's'}
+                          </span>
+                        )}
+                        {book.data.universe && (
+                          <span>{book.data.universe}</span>
+                        )}
+                        <span>since {formatDate(book.data.startedOn)}</span>
+                        <FormatBadges
+                          pdfUrl={book.data.pdfUrl}
+                          audioUrl={book.data.audioUrl}
+                        />
+                      </span>
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
 
           {shelf === 'fanfic' && (
             <p class="note">
@@ -174,18 +282,60 @@ const totalChapters = chapters.length;
         </section>
       ))
     }
+
+    <section class="colophon rise">
+      <p class="eyebrow">How this library works</p>
+      <div class="colophon-grid">
+        <div class="colophon-item">
+          <h3>Drafts are public</h3>
+          <p>
+            Chapters appear the moment they are written, marked honestly as
+            draft, revising, or final. No polish theater.
+          </p>
+        </div>
+        <div class="colophon-item">
+          <h3>Git is the writing log</h3>
+          <p>
+            Every revision of every chapter is a public commit: when it was
+            first drafted, when it changed, and how often.
+          </p>
+        </div>
+        <div class="colophon-item">
+          <h3>Follow along</h3>
+          <p>
+            New chapters land in the <a
+              href={new URL(withBase('/rss.xml'), Astro.site)}>RSS feed</a
+            > once they are published. No accounts, no tracking.
+          </p>
+        </div>
+      </div>
+    </section>
   </main>
 </Base>
 
 <style>
   .hero {
     margin-block: var(--space-xl) var(--space-3xl);
+    display: grid;
+    gap: var(--space-2xl);
+    align-items: center;
+  }
+
+  @media (min-width: 52rem) {
+    .hero {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    }
   }
 
   .hero h1 {
     font-size: var(--text-2xl);
     max-width: 18ch;
     margin-top: var(--space-xs);
+  }
+
+  .spark {
+    color: var(--gold-leaf);
+    margin-right: 0.35em;
   }
 
   .lede {
@@ -205,6 +355,104 @@ const totalChapters = chapters.length;
     color: var(--ink-soft);
   }
 
+  .stats strong {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    color: var(--flame);
+    font-weight: 600;
+    margin-right: 0.15em;
+  }
+
+  /* -- tilted ghost plates -- */
+  .hero-plates {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    max-width: 24rem;
+    width: 100%;
+    justify-self: center;
+  }
+
+  .plate {
+    position: absolute;
+    inset: 8% 12%;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-lg);
+    border-radius: var(--radius);
+    background: var(--surface-raised);
+    border: 1px solid var(--line-soft);
+    box-shadow: var(--shadow-e3);
+    transition: transform var(--duration-slow) var(--ease-out);
+  }
+
+  .plate-back {
+    transform: translate(7%, 5%) rotate(4deg);
+    box-shadow: var(--shadow-e2);
+    align-content: center;
+    justify-items: start;
+    opacity: 0.75;
+  }
+
+  .plate-front {
+    transform: rotate(-5deg);
+  }
+
+  .hero-plates:hover .plate-front {
+    transform: rotate(-3deg) translateY(-4px);
+  }
+
+  .hero-plates:hover .plate-back {
+    transform: translate(8%, 6%) rotate(5deg);
+  }
+
+  .plate-spine {
+    position: absolute;
+    left: 0;
+    top: 10%;
+    bottom: 10%;
+    width: 3px;
+    border-radius: 2px;
+    background: var(--flame-dim);
+  }
+
+  .plate-flame {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 999px;
+    background: var(--flame-wash);
+    border: 1px solid var(--flame-dim);
+    color: var(--flame);
+  }
+
+  .plate-flame svg {
+    width: 1.3rem;
+    height: 1.3rem;
+  }
+
+  .plate-title {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    color: var(--ink);
+    margin-top: var(--space-xs);
+  }
+
+  .plate-sub {
+    font-size: var(--text-sm);
+    color: var(--ink-faint);
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.1em;
+  }
+
+  .plate-back .skeleton-line {
+    width: 100%;
+  }
+
+  /* -- continue reading -- */
   .continue {
     display: grid;
     gap: var(--space-2xs);
@@ -241,14 +489,7 @@ const totalChapters = chapters.length;
     color: var(--ink-soft);
   }
 
-  .stats strong {
-    font-family: var(--font-display);
-    font-size: var(--text-lg);
-    color: var(--flame);
-    font-weight: 600;
-    margin-right: 0.15em;
-  }
-
+  /* -- shelves -- */
   .shelf {
     margin-bottom: var(--space-2xl);
     padding-top: var(--space-lg);
@@ -279,14 +520,75 @@ const totalChapters = chapters.length;
     font-style: italic;
   }
 
+  /* crafted empty state: a spine-out ghost stack + a promise */
+  .shelf-empty {
+    margin-top: var(--space-lg);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-lg) var(--space-xl);
+    padding: var(--space-lg);
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+    background: var(--flame-wash);
+  }
+
+  .ghost-stack {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    flex: none;
+  }
+
+  .ghost-book {
+    display: block;
+    width: 1.1rem;
+    border-radius: 3px 3px 2px 2px;
+    background: var(--surface-raised);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-e1);
+  }
+
+  .ghost-book:nth-child(1) {
+    height: 3.4rem;
+  }
+  .ghost-book:nth-child(2) {
+    height: 4.2rem;
+    border-color: var(--flame-dim);
+  }
+  .ghost-book:nth-child(3) {
+    height: 3.8rem;
+    transform: rotate(6deg);
+    transform-origin: bottom left;
+  }
+
+  .shelf-empty-copy {
+    flex: 1;
+    min-width: min(100%, 18rem);
+  }
+
+  .shelf-empty-title {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .shelf-empty-note {
+    margin-top: var(--space-xs);
+    color: var(--ink-soft);
+    max-width: 56ch;
+  }
+
   ul {
     list-style: none;
     margin: var(--space-lg) 0 0;
     padding: 0;
     display: grid;
     gap: var(--space-md);
-    /* multi-column on wider screens: books browse 2-3 up, not a thin stack */
-    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+    /* min(100%, 20rem) keeps tracks from forcing horizontal overflow on
+       narrow phones (the raw 20rem minimum overflowed at 320px) */
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
   }
 
   .entry {
@@ -299,16 +601,18 @@ const totalChapters = chapters.length;
     -webkit-backdrop-filter: blur(var(--blur)) saturate(1.3);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius);
-    box-shadow: var(--shadow-glass);
+    box-shadow: var(--shadow-e1);
     text-decoration: none;
     color: var(--ink);
     transition:
       border-color var(--duration-base) var(--ease-out),
+      box-shadow var(--duration-base) var(--ease-out),
       transform var(--duration-base) var(--ease-out);
   }
 
   a.entry:hover {
     border-color: var(--flame-dim);
+    box-shadow: var(--shadow-e2);
     transform: translateY(-2px);
   }
 
@@ -335,18 +639,34 @@ const totalChapters = chapters.length;
     max-width: var(--measure);
   }
 
-  .ghost-li {
-    grid-column: 1 / -1;
+  .note {
+    margin-top: var(--space-md);
+    font-size: var(--text-sm);
+    color: var(--ink-faint);
+    max-width: var(--measure);
   }
 
-  .ghost {
-    background: transparent;
-    box-shadow: none;
-    border-style: dashed;
+  /* -- colophon -- */
+  .colophon {
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--line);
   }
 
-  .skeleton-line.title {
-    width: 45%;
-    height: 1.1em;
+  .colophon-grid {
+    margin-top: var(--space-lg);
+    display: grid;
+    gap: var(--space-lg);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  }
+
+  .colophon-item h3 {
+    font-size: var(--text-body);
+    color: var(--ink);
+  }
+
+  .colophon-item p {
+    margin-top: var(--space-xs);
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
   }
 </style>

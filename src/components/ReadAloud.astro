@@ -22,16 +22,32 @@ const { bookTitle, chapterTitle, nextHref } = Astro.props;
   hidden
 >
   <div class="ra-main">
-    <button type="button" class="ra-play" data-ra-toggle aria-label="Read this chapter aloud">
-      <svg class="ra-icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <button type="button" class="ra-play" data-ra-toggle>
+      <svg
+        class="ra-icon-play"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        aria-hidden="true"
+      >
         <path d="M8 5v14l11-7z"></path>
       </svg>
-      <svg class="ra-icon-pause is-hidden" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <svg
+        class="ra-icon-pause is-hidden"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        aria-hidden="true"
+      >
         <path d="M6 5h4v14H6zM14 5h4v14h-4z"></path>
       </svg>
       <span class="ra-label" data-ra-label>Read aloud</span>
     </button>
-    <button type="button" class="ra-icon-btn ra-stop" data-ra-stop aria-label="Stop reading" hidden>
+    <button
+      type="button"
+      class="ra-icon-btn ra-stop"
+      data-ra-stop
+      aria-label="Stop reading"
+      hidden
+    >
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         <path d="M6 6h12v12H6z"></path>
       </svg>
@@ -44,7 +60,9 @@ const { bookTitle, chapterTitle, nextHref } = Astro.props;
       aria-expanded="false"
     >
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M3 7h11a3 3 0 0 1 6 0h1v2h-1a3 3 0 0 1-6 0H3zM3 15h5a3 3 0 0 1 6 0h7v2h-7a3 3 0 0 1-6 0H3z"></path>
+        <path
+          d="M3 7h11a3 3 0 0 1 6 0h1v2h-1a3 3 0 0 1-6 0H3zM3 15h5a3 3 0 0 1 6 0h7v2h-7a3 3 0 0 1-6 0H3z"
+        ></path>
       </svg>
     </button>
   </div>
@@ -56,7 +74,14 @@ const { bookTitle, chapterTitle, nextHref } = Astro.props;
     </label>
     <label class="ra-field">
       <span>Speed <b data-ra-rate-label>1.0x</b></span>
-      <input type="range" data-ra-rate min="0.6" max="1.8" step="0.1" value="1" />
+      <input
+        type="range"
+        data-ra-rate
+        min="0.6"
+        max="1.8"
+        step="0.1"
+        value="1"
+      />
     </label>
     <label class="ra-field">
       <span>Sleep timer</span>
@@ -125,7 +150,8 @@ const { bookTitle, chapterTitle, nextHref } = Astro.props;
       rateInput.value = String(pref.rate);
       rateLabel.textContent = Number(pref.rate).toFixed(1) + 'x';
     }
-    if (typeof pref.continuous === 'boolean') continuous.checked = pref.continuous;
+    if (typeof pref.continuous === 'boolean')
+      continuous.checked = pref.continuous;
 
     // --- voices (populate async; some browsers fire voiceschanged) ---
     const fillVoices = () => {

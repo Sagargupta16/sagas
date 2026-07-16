@@ -25,7 +25,7 @@ Read `references/revision.md` and `references/prose-style.md` from the `writing-
 ## Status transitions
 
 - After a full ladder run: suggest `draft -> revising` or `revising -> final`.
-- `final` + ready to announce = set `publishedOn` (this is what puts it in RSS); confirm the date with Sagar before setting.
+- Publishing (`publishedOn`) is the `publish-chapter` skill's job, never this one's -- its gates (continuity, fanfic checks, mechanical sweep) must not be bypassed by an edit pass.
 
 ## Rules
 

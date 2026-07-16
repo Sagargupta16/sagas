@@ -11,17 +11,17 @@
 
 ## Project
 
-sagas -- a living library of unfinished books. Original fantasy, fan fiction, and perspective essays by Sagar, written in the open one chapter at a time. Frontend-only static site; downloads and audiobooks may come later.
+sagas -- a living library of unfinished books. Original fantasy, fan fiction, and perspective essays by Sagar, written in the open one chapter at a time. Static site with a small client-side reader platform (preferences, progress, TTS); no backend, everything in localStorage. Launches with zero books -- the shelves show crafted empty states until real writing lands.
 
 Deploys to GitHub Pages at https://sagargupta.online/sagas (project-site subpath, matching every other project repo in the workspace).
 
 ## Stack
 
 - **Language**: TypeScript (strict)
-- **Framework**: Astro 7, content collections, zero client JS
+- **Framework**: Astro 7, content collections; inline client scripts power the chapter reader (progress, preferences, keyboard/swipe nav, speech synthesis)
 - **Database**: none -- Markdown files in `src/content/` are the data
-- **Package manager**: pnpm
-- **Deploy target**: GitHub Pages via `.github/workflows/deploy.yml`
+- **Package manager**: pnpm (pinned via `packageManager`)
+- **Deploy target**: GitHub Pages via `.github/workflows/deploy.yml`; PR quality gate in `.github/workflows/ci.yml`
 
 ## Run
 
@@ -34,11 +34,16 @@ pnpm build
 ## Test
 
 ```
-pnpm check
+pnpm check           # types + schema
+pnpm verify:content  # cross-file content invariants
+pnpm format:check    # prettier (LF everywhere; .gitattributes enforces it)
 pnpm build
+pnpm test:e2e        # Playwright smoke tests (desktop / mobile / 320px)
 ```
 
-No test framework yet; `astro check` + a clean build is the bar.
+CI runs all of these on every PR. The reader regression tests in
+`tests/e2e/reader.spec.ts` skip themselves while the library has zero
+chapters and activate automatically when the first chapter lands.
 
 ## Entry points
 
@@ -61,9 +66,9 @@ No test framework yet; `astro check` + a clean build is the bar.
 - Three shelves: `fantasy`, `fanfic`, `essays`. Essay collections are books; each essay is a chapter.
 - Book status: `ideation | drafting | ongoing | hiatus | complete`. Chapter status: `draft | revising | final`.
 - Chapters need `order` (number) and get into RSS only once `publishedOn` is set.
-- Fan fiction is free and non-commercial, always. `universe` frontmatter names the source world.
-- The three seed books tagged `placeholder` exist to prove routes; replace them as real writing lands.
-- Per-book working files use a `_` prefix (`_outline.md`, `_bible.md`) so the collection globs ignore them.
+- Fan fiction is free and non-commercial, always. `universe` frontmatter is required on the fanfic shelf (schema-enforced).
+- The library launches with zero books; shelves render crafted empty states. `src/content/books/README.md` documents the authoring contract.
+- Per-book working files use a `_` prefix (`_outline.md`, `_bible.md`) so the collection globs ignore them. They are visible in the public repo -- keep spoilers out or the repo private-drafted.
 
 ## Skills (project-level)
 
@@ -89,7 +94,7 @@ Invoke via the Skill tool when the trigger matches. The craft knowledge base is 
 
 ## Gotchas
 
-- `smartypants: false` in `astro.config.mjs` -- Markdown `--` must NOT become en-dashes (dash rule applies to prose too).
+- `markdown.processor: satteri({ features: { smartPunctuation: false } })` in `astro.config.mjs` -- Markdown `--` must NOT become en-dashes (dash rule applies to prose too). The old `smartypants` flag is deprecated in Astro 7.
 - pnpm 11 needs `allowBuilds` in `pnpm-workspace.yaml` for esbuild/sharp; without it installs fail.
 - Fontsource imports must point at `index.css` explicitly or `astro check` fails (no types on the bare entry).
 - Fonts are self-hosted via Fontsource (Eczar display, Literata body). No Google Fonts CDN.

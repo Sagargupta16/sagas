@@ -1,8 +1,9 @@
 {
   "name": "sagas",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
+  "packageManager": "pnpm@11.10.0",
   "engines": {
     "node": ">=22.12.0"
   },
@@ -12,6 +13,9 @@
     "preview": "astro preview",
     "check": "astro check",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "verify:content": "node scripts/verify-content.mjs",
+    "test:e2e": "playwright test",
     "astro": "astro"
   },
   "dependencies": {
@@ -21,8 +25,10 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
+    "@astrojs/markdown-satteri": "^0.3.3",
     "@fontsource-variable/eczar": "^5.2.8",
     "@fontsource-variable/literata": "^5.2.8",
+    "@playwright/test": "^1.61.1",
     "prettier": "^3.9.5",
     "prettier-plugin-astro": "^0.14.1",
     "typescript": "^6.0.3"

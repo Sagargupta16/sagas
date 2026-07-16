@@ -5,7 +5,7 @@ description: Turn a book idea into a structural outline with promises, arcs, and
 
 # Outline a book
 
-Produce a working outline for a book in `src/content/books/<slug>/`, stored in the book folder as `outline.md` (not a content collection file, so prefix with `_`: `_outline.md` is ignored by the glob patterns).
+Produce a working outline for a book in `src/content/books/<slug>/`, stored in the book folder as `_outline.md` (the `_` prefix keeps it out of the content-collection globs).
 
 ## Preparation
 
