@@ -2,6 +2,17 @@
 
 All notable changes to sagas.
 
+## [0.2.1] - 2026-09-02
+
+### Security
+
+- Bumped `astro` to 7.2.10 (reflected XSS via unescaped View Transition
+  animation properties).
+- Added pnpm overrides forcing patched transitive dependencies: `nanoid`
+  3.3.18, `postcss` 8.5.26, `js-yaml` 4.3.2, `fast-uri` 3.1.6,
+  `fast-xml-parser` 5.11.1, `svgo` 4.1.0. Resolves all ten open
+  Dependabot alerts.
+
 ## [0.2.0] - 2026-07-15
 
 Zero-book launch: the placeholder seed books are gone, the shelves open
