@@ -1,7 +1,7 @@
 {
   "name": "sagas",
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "packageManager": "pnpm@11.10.0",
   "engines": {
@@ -21,7 +21,7 @@
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.3",
-    "astro": "^7.0.7"
+    "astro": "^7.1.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
