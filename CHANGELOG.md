@@ -2,6 +2,19 @@
 
 All notable changes to sagas.
 
+## [0.2.2] - 2026-09-21
+
+### Security
+
+- Added pnpm overrides forcing patched transitive dependencies: `smol-toml`
+  1.7.1 (high, denial of service via malformed TOML documents, Dependabot #12)
+  and `devalue` 5.9.2 (medium, denial of service via malformed input, Dependabot
+  #13). Neither is declared in `package.json`; both arrive through the Astro and
+  Svelte resolution tree, so an override is the only durable floor.
+- Overrides are pinned at the advisory minimums rather than the resolved
+  versions, matching the 0.2.1 entries. Resolution lands on `smol-toml` 1.8.0 and
+  `devalue` 5.9.4.
+
 ## [0.2.1] - 2026-09-02
 
 ### Security
