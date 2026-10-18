@@ -37,6 +37,13 @@ export const chapterSlug = (id: string) => id.split('/')[2];
 export const withBase = (path: string) =>
   `${import.meta.env.BASE_URL}${path}`.replace(/\/+/g, '/');
 
+/** Page URLs end in `/`: GitHub Pages serves `dir/index.html` there and
+ *  301-redirects the slashless form, so links and canonicals use this one. */
+export const bookHref = (slug: string) => withBase(`/books/${slug}/`);
+
+export const chapterHref = (slug: string, chapterId: string) =>
+  withBase(`/books/${slug}/${chapterSlug(chapterId)}/`);
+
 export const formatDate = (date: Date) =>
   date.toLocaleDateString('en-US', {
     year: 'numeric',

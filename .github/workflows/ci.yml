@@ -48,8 +48,20 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Demo book stays out of the production build
+        run: test ! -e dist/books/reader-demo
+
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Browser smoke tests
+      # The real site as it ships: empty shelves, reader tests skip cleanly.
+      - name: Browser tests (production build)
         run: pnpm test:e2e
+
+      # Rebuild with the demo book from tests/fixtures/books so the reader
+      # suite always has chapters to run against. Deploy never sets this.
+      - name: Build with the demo book
+        run: pnpm build:demo
+
+      - name: Browser tests (demo build)
+        run: pnpm test:e2e:demo

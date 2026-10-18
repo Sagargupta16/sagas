@@ -6,7 +6,9 @@ import AudioPlayer from '../../../components/AudioPlayer.astro';
 import ReadAloud from '../../../components/ReadAloud.astro';
 import {
   CHAPTER_STATUS_LABELS,
+  bookHref,
   bookSlug,
+  chapterHref,
   chapterSlug,
   formatDate,
   readingMinutes,
@@ -55,14 +57,11 @@ const articleLd = {
   '@type': 'Chapter',
   name: chapter.data.title,
   position: chapter.data.order,
-  url: new URL(
-    withBase(`/books/${slug}/${chapterSlug(chapter.id)}`),
-    Astro.site,
-  ).href,
+  url: new URL(chapterHref(slug, chapter.id), Astro.site).href,
   isPartOf: {
     '@type': 'Book',
     name: book.data.title,
-    url: new URL(withBase(`/books/${slug}`), Astro.site).href,
+    url: new URL(bookHref(slug), Astro.site).href,
   },
   ...(chapter.data.publishedOn && {
     datePublished: chapter.data.publishedOn.toISOString(),
@@ -89,14 +88,14 @@ const articleLd = {
     class="read"
     data-book={slug}
     data-chapter={chapterSlug(chapter.id)}
-    data-prev={prev ? withBase(`/books/${slug}/${chapterSlug(prev.id)}`) : ''}
-    data-next={next ? withBase(`/books/${slug}/${chapterSlug(next.id)}`) : ''}
+    data-prev={prev ? chapterHref(slug, prev.id) : ''}
+    data-next={next ? chapterHref(slug, next.id) : ''}
   >
     <header class="chapter-head rise">
       <p class="eyebrow crumb">
         <a href={withBase('/')} class="back">Library</a>
         <span class="sep">/</span>
-        <a href={withBase(`/books/${slug}`)} class="back">{book.data.title}</a>
+        <a href={bookHref(slug)} class="back">{book.data.title}</a>
       </p>
       <p class="chapter-num">Chapter {chapter.data.order}</p>
       <h1>{chapter.data.title}</h1>
@@ -124,9 +123,7 @@ const articleLd = {
       <ReadAloud
         bookTitle={book.data.title}
         chapterTitle={chapter.data.title}
-        nextHref={next
-          ? withBase(`/books/${slug}/${chapterSlug(next.id)}`)
-          : undefined}
+        nextHref={next ? chapterHref(slug, next.id) : undefined}
       />
 
       <div class="reader-tools">
@@ -243,10 +240,7 @@ const articleLd = {
       (prev || next) && (
         <nav class="pager rise" aria-label="Chapter navigation">
           {prev ? (
-            <a
-              href={withBase(`/books/${slug}/${chapterSlug(prev.id)}`)}
-              class="page prev"
-            >
+            <a href={chapterHref(slug, prev.id)} class="page prev">
               <span class="dir">&larr; Previous</span>
               <span class="page-title">{prev.data.title}</span>
             </a>
@@ -254,10 +248,7 @@ const articleLd = {
             <span class="page placeholder" aria-hidden="true" />
           )}
           {next && (
-            <a
-              href={withBase(`/books/${slug}/${chapterSlug(next.id)}`)}
-              class="page next"
-            >
+            <a href={chapterHref(slug, next.id)} class="page next">
               <span class="dir">Next &rarr;</span>
               <span class="page-title">{next.data.title}</span>
             </a>

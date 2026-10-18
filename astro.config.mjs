@@ -7,7 +7,9 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   site: 'https://sagargupta.online',
   base: '/sagas',
-  trailingSlash: 'never',
+  // GitHub Pages serves `dir/index.html` at `dir/` and 301s `dir` to it, so
+  // every page URL (links, canonical, og:url, sitemap) ends in a slash.
+  trailingSlash: 'always',
   integrations: [sitemap()],
   markdown: {
     // House dash rule: `--` in prose must stay `--`, never become an

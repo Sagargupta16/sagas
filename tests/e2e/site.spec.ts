@@ -57,6 +57,18 @@ test.describe('home page', () => {
     await expect(page).toHaveURL(/#main$/);
   });
 
+  test('glass surfaces keep their backdrop blur after minification', async ({
+    page,
+  }) => {
+    await page.goto(HOME);
+    // regression: with `backdrop-filter` declared before the -webkit- form,
+    // the CSS minifier kept only the prefixed one and Chromium blurred nothing
+    const filter = await page
+      .locator('body > header')
+      .evaluate((el) => getComputedStyle(el).backdropFilter);
+    expect(filter).toContain('blur(');
+  });
+
   test('decorative layers never intercept input', async ({ page }) => {
     await page.goto(HOME);
     for (const selector of ['.ambient', '.grain']) {
@@ -82,8 +94,28 @@ test.describe('feeds and metadata', () => {
     expect(res.ok()).toBeTruthy();
   });
 
+  test('sitemap lists each page once, slash-terminated', async ({
+    request,
+  }) => {
+    const body = await (await request.get('/sagas/sitemap-0.xml')).text();
+    const locs = [...body.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    expect(locs).toContain('https://sagargupta.online/sagas/');
+    expect(new Set(locs).size).toBe(locs.length);
+    for (const loc of locs) expect(loc).toMatch(/\/$/);
+  });
+
+  test('home canonical is the slash URL GitHub Pages serves', async ({
+    page,
+  }) => {
+    await page.goto(HOME);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      'https://sagargupta.online/sagas/',
+    );
+  });
+
   test('404 page renders with skip target', async ({ page }) => {
-    const res = await page.goto('/sagas/definitely-not-a-page');
+    const res = await page.goto('/sagas/definitely-not-a-page/');
     expect(res?.status()).toBe(404);
     await expect(page.locator('#main')).toBeAttached();
   });

@@ -28,6 +28,7 @@ Deploys to GitHub Pages at https://sagargupta.online/sagas (project-site subpath
 ```
 pnpm install
 pnpm dev
+pnpm dev:demo        # with the demo book from tests/fixtures/books/
 pnpm build
 ```
 
@@ -38,12 +39,18 @@ pnpm check           # types + schema
 pnpm verify:content  # cross-file content invariants
 pnpm format:check    # prettier (LF everywhere; .gitattributes enforces it)
 pnpm build
-pnpm test:e2e        # Playwright smoke tests (desktop / mobile / 320px)
+pnpm test:e2e        # Playwright tests (desktop / mobile / 320px)
+pnpm build:demo      # build with the demo book (SAGAS_FIXTURES=1)
+pnpm test:e2e:demo   # Playwright against the demo build -- what CI runs
+pnpm screenshots     # README images; needs `pnpm preview` of a demo build
 ```
 
-CI runs all of these on every PR. The reader regression tests in
-`tests/e2e/reader.spec.ts` skip themselves while the library has zero
-chapters and activate automatically when the first chapter lands.
+CI runs all of these on every PR. It builds the real site, asserts
+`dist/books/reader-demo` is absent, runs `pnpm test:e2e` on it (the empty
+shelves as shipped), then rebuilds with `pnpm build:demo` and runs
+`pnpm test:e2e:demo`, so `tests/e2e/reader.spec.ts` always has chapters.
+Without `SAGAS_FIXTURES` the reader tests fall back to the first real chapter
+and skip while the shelves are empty.
 
 ## Entry points
 
@@ -98,11 +105,14 @@ Invoke via the Skill tool when the trigger matches. The craft knowledge base is 
 - pnpm 11 needs `allowBuilds` in `pnpm-workspace.yaml` for esbuild/sharp; without it installs fail.
 - `pnpm-lock.yaml` is in `.prettierignore`: pnpm's own writer disagrees with Prettier, so every lockfile update used to fail `pnpm format:check`.
 - Hold `prettier-plugin-astro` at 0.14.x: 1.x reflows inline text around closing tags (`</a\n>.` becomes `</a>\n.`), which renders a visible space before punctuation.
-- With zero chapters CI skips the reader tests, so reader-script changes go unverified. Before shipping one, add a throwaway long chapter under `src/content/books/zz-probe/`, run `pnpm build` and `pnpm test:e2e`, then delete it.
+- The demo book lives in `tests/fixtures/books/reader-demo/` and loads only when `SAGAS_FIXTURES` is set (`src/content.config.ts` switches the glob loaders to two roots with `base: '.'` and its own `generateId`). Never move it under `src/content/`; deploy builds must stay fixture-free. Set the flag through `scripts/with-fixtures.mjs` (the `:demo` scripts), because an inline `VAR=1 cmd` prefix fails in the Windows shell pnpm uses.
+- Reader-script changes are covered by `pnpm build:demo` + `pnpm test:e2e:demo`. Chapter 1 of the demo book is deliberately long enough to scroll on every viewport; keep it that way or the progress tests lose meaning.
 - Locally, `astro preview` can detach into a background server and exit, which makes Playwright report "Process from config.webServer exited early". Run `pnpm test:e2e` again (it reuses the running server) and finish with `pnpm exec astro preview stop`.
 - Fontsource imports must point at `index.css` explicitly or `astro check` fails (no types on the bare entry).
 - Fonts are self-hosted via Fontsource (Eczar display, Literata body). No Google Fonts CDN.
 - Site deploys at a subpath (`base: '/sagas'` in `astro.config.mjs`): every internal `href`/link must go through `withBase()` from `src/lib/shelf.ts`, never a raw `/path` string. `@astrojs/rss` link fields also need `withBase()` -- `site`/`base` aren't applied to them automatically.
+- `trailingSlash: 'always'`: GitHub Pages serves `dir/index.html` at `dir/` and 301s `dir` to it. Page links use `bookHref()` / `chapterHref()`, which end in `/`; files (`/rss.xml`, `/favicon.svg`) keep `withBase()` with no slash. `astro preview` 404s a slashless page URL, so tests must use the slash form too.
+- Write `-webkit-backdrop-filter` BEFORE `backdrop-filter`. The CSS minifier keeps only the last of the pair, and Chromium ignores the prefixed one, so the other order shipped glass with no blur at all. `site.spec.ts` asserts the computed blur.
 
 ## Repo-specific rules
 
