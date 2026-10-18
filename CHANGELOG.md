@@ -2,6 +2,50 @@
 
 All notable changes to sagas.
 
+## [0.3.0] - 2026-10-18
+
+### Added
+
+- Demo book: `tests/fixtures/books/reader-demo/`, three chapters (two
+  published, one draft). It loads only when `SAGAS_FIXTURES=1` is set, through
+  `pnpm dev:demo`, `pnpm build:demo` and `pnpm test:e2e:demo`
+  (`scripts/with-fixtures.mjs` sets the flag so it also works on Windows). The
+  production build and the deploy never include it, and CI now checks that.
+- CI runs the browser suite against the demo build, so the reader tests run
+  on every PR. Before this, 12 of 42 were skipped because the library has no
+  chapters. The suite is now 78 tests, 26 per viewport, and none skip. New
+  coverage: progress saved by a real scroll, the resume offer, arrow-key
+  chapter navigation, the continue-reading card, chapter order on the book
+  page, draft chapters kept out of RSS, slash-terminated canonicals and
+  sitemap entries, glass blur surviving minification, and the `--` dash rule
+  in built prose. Passed 234/234 with `--repeat-each=3`.
+- README screenshots at desktop and phone widths, taken from the demo build.
+  `pnpm screenshots` (`scripts/screenshots.mjs`) regenerates them as WebP
+  through the browser's own encoder, so there is no image dependency.
+- README "Try the reader locally" and "Quality" sections. Lighthouse 13.5.0
+  mobile on the demo build: home 99/100/100/100, chapter 100/100/100/100
+  (performance, accessibility, best practices, SEO).
+
+### Fixed
+
+- Canonical, `og:url`, sitemap and RSS links no longer point at redirects.
+  With `trailingSlash: 'never'` every page URL was the slashless form, which
+  GitHub Pages 301s to `.../`, and the sitemap listed the home page twice. The
+  site now uses `trailingSlash: 'always'`, and page links go through the new
+  `bookHref()` / `chapterHref()` helpers.
+- Glass surfaces (sticky header, cards, resume prompt, reader panels) had no
+  backdrop blur in Chromium. The minifier kept only the `-webkit-` form of
+  each `backdrop-filter` pair, and Chromium ignores that form, so the computed
+  value was `none`. The declarations are now ordered so the standard one is
+  kept.
+- The home stats read "1 booktaking shape" once a book existed, because a
+  line break in the template dropped the space.
+- Accessibility (Lighthouse 95 to 100): faint ink (`--ink-faint`) now clears
+  WCAG AA 4.5:1 on every surface. Dark goes from 3.2:1 to 4.85:1 on the
+  lightest dark surface, and light and sepia were raised to match. The
+  header wordmark drops an `aria-label` that hid its visible text from its
+  accessible name.
+
 ## [0.2.3] - 2026-10-18
 
 ### Fixed

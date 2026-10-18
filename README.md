@@ -15,6 +15,37 @@ The shelves are built and open; the first books are being written. Every book
 starts as an idea and gets written in public. Drafts are drafts; git history is
 the writing log.
 
+## See it
+
+<table>
+  <tr>
+    <td width="33%"><img src="docs/screenshots/reader-resume-phone.webp" alt="Chapter reader on a phone in the sepia theme, with the progress bar and a resume-where-you-left-off prompt"></td>
+    <td width="33%"><img src="docs/screenshots/read-aloud-phone.webp" alt="Read-aloud panel on a phone: voice, speed, sleep timer and continue-to-next-chapter"></td>
+    <td width="33%"><img src="docs/screenshots/home-phone.webp" alt="Home page on a phone"></td>
+  </tr>
+</table>
+
+![Chapter reader on desktop with the reading settings panel open: theme, typeface, text size and line spacing](docs/screenshots/reader-settings-desktop.webp)
+
+![Home page on desktop with the continue-reading card](docs/screenshots/home-desktop.webp)
+
+The real shelves are still empty, so these show the demo book from
+[tests/fixtures/books/](tests/fixtures/books/reader-demo/). It only exists in
+demo and test builds; the live site never includes it. `pnpm screenshots`
+regenerates every image from a running demo build.
+
+## Try the reader locally
+
+```
+pnpm install
+pnpm dev:demo        # http://localhost:4321/sagas/ with the demo book
+```
+
+`dev:demo`, `build:demo` and `test:e2e:demo` set `SAGAS_FIXTURES=1`, which
+loads the three-chapter demo book next to the real library. Scroll a chapter,
+reload, open the reading settings, press the arrow keys, try read-aloud: all of
+it runs in the browser with nothing to sign up for.
+
 ## The shelves
 
 - **Original Fantasy** -- worlds of my own, long arcs, written as they come.
@@ -92,15 +123,40 @@ per chapter (see the README there for the exact contract).
 ```
 pnpm install
 pnpm dev             # local dev at :4321/sagas
+pnpm dev:demo        # same, plus the demo book
 pnpm build           # static build to dist/
+pnpm build:demo      # static build with the demo book
 pnpm check           # types + content schema
 pnpm verify:content  # cross-file content invariants
 pnpm format:check    # prettier
-pnpm test:e2e        # Playwright smoke tests against the built site
+pnpm test:e2e        # Playwright tests against the built site
+pnpm test:e2e:demo   # same, against a build:demo site (what CI runs)
+pnpm screenshots     # README images, from a running demo build
 ```
 
-CI runs all of those on every pull request; pushes to `main` deploy to GitHub
-Pages.
+CI runs all of those on every pull request: it builds the real site, checks
+the demo book is not in it, then rebuilds with the demo book and runs the
+browser suite. Pushes to `main` deploy the real build to GitHub Pages.
+
+## Quality
+
+Lighthouse 13.5.0, mobile, against `pnpm preview` of a `pnpm build:demo`
+site, measured 2026-10-18:
+
+| Page          | Performance | Accessibility | Best practices | SEO | LCP   | Transfer |
+| ------------- | ----------- | ------------- | -------------- | --- | ----- | -------- |
+| Home          | 99          | 100           | 100            | 100 | 1.7 s | 88 KiB   |
+| Chapter (1/3) | 100         | 100           | 100            | 100 | 1.7 s | 93 KiB   |
+
+Total blocking time was 0 ms on both. There are no JavaScript files to
+download: the reader's scripts are inlined, and the transfer is mostly the two
+self-hosted variable fonts.
+
+The Playwright suite has 78 tests: 26 each at desktop, a Pixel 7, and a 320px
+viewport. They cover reading progress (saved on scroll, kept across a reload,
+resume offer), arrow-key navigation, theme persistence, the continue-reading
+card, RSS draft filtering, slash-terminated canonicals and sitemap entries,
+and the `--` dash rule in built prose.
 
 ## Adding a chapter
 
