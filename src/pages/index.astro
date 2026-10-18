@@ -5,7 +5,9 @@ import FormatBadges from '../components/FormatBadges.astro';
 import {
   SHELVES,
   STATUS_LABELS,
+  bookHref,
   bookSlug,
+  chapterHref,
   chapterSlug,
   formatDate,
   withBase,
@@ -29,7 +31,7 @@ const readingMap = Object.fromEntries(
       .map((c) => ({
         id: chapterSlug(c.id),
         title: c.data.title,
-        href: withBase(`/books/${slug}/${chapterSlug(c.id)}`),
+        href: chapterHref(slug, c.id),
       }));
     return [slug, { title: b.data.title, chapters: chs }];
   }),
@@ -93,8 +95,7 @@ const EMPTY_SHELF_NOTES: Record<Shelf, string> = {
               <>
                 <span>
                   <strong>{totalBooks}</strong> book
-                  {totalBooks === 1 ? '' : 's'}
-                  taking shape
+                  {totalBooks === 1 ? '' : 's'} taking shape
                 </span>
                 <span>
                   <strong>{totalChapters}</strong> chapter
@@ -242,7 +243,7 @@ const EMPTY_SHELF_NOTES: Record<Shelf, string> = {
                 const count = chapterCount(slug);
                 return (
                   <li>
-                    <a href={withBase(`/books/${slug}`)} class="entry">
+                    <a href={bookHref(slug)} class="entry">
                       <span class="entry-top">
                         <span class="book-title">{book.data.title}</span>
                         <span class="pill" data-status={book.data.status}>
@@ -597,8 +598,8 @@ const EMPTY_SHELF_NOTES: Record<Shelf, string> = {
     gap: var(--space-xs);
     padding: var(--space-md) var(--space-lg);
     background: var(--glass);
-    backdrop-filter: blur(var(--blur)) saturate(1.3);
     -webkit-backdrop-filter: blur(var(--blur)) saturate(1.3);
+    backdrop-filter: blur(var(--blur)) saturate(1.3);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     box-shadow: var(--shadow-e1);

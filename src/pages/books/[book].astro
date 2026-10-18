@@ -8,8 +8,9 @@ import {
   SHELVES,
   STATUS_LABELS,
   CHAPTER_STATUS_LABELS,
+  bookHref,
   bookSlug,
-  chapterSlug,
+  chapterHref,
   formatDate,
   readingMinutes,
   withBase,
@@ -37,7 +38,7 @@ const bookLd = {
   '@context': 'https://schema.org',
   '@type': 'Book',
   name: book.data.title,
-  url: new URL(withBase(`/books/${slug}`), Astro.site).href,
+  url: new URL(bookHref(slug), Astro.site).href,
   abstract: book.data.synopsis,
   inLanguage: 'en',
   creativeWorkStatus: book.data.status,
@@ -126,10 +127,7 @@ const bookLd = {
           <ol class="chapter-list">
             {chapters.map((chapter) => (
               <li>
-                <a
-                  href={withBase(`/books/${slug}/${chapterSlug(chapter.id)}`)}
-                  class="chapter-link"
-                >
+                <a href={chapterHref(slug, chapter.id)} class="chapter-link">
                   <span class="num">
                     {String(chapter.data.order).padStart(2, '0')}
                   </span>
