@@ -1,7 +1,7 @@
 {
   "name": "sagas",
   "type": "module",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "private": true,
   "packageManager": "pnpm@11.10.0",
   "engines": {
@@ -9,13 +9,17 @@
   },
   "scripts": {
     "dev": "astro dev",
+    "dev:demo": "node scripts/with-fixtures.mjs astro dev",
     "build": "astro build",
+    "build:demo": "node scripts/with-fixtures.mjs astro build",
     "preview": "astro preview",
     "check": "astro check",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "verify:content": "node scripts/verify-content.mjs",
+    "screenshots": "node scripts/screenshots.mjs",
     "test:e2e": "playwright test",
+    "test:e2e:demo": "node scripts/with-fixtures.mjs playwright test",
     "astro": "astro"
   },
   "dependencies": {

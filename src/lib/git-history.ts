@@ -29,7 +29,15 @@ function buildHistoryMap(): Map<string, string[]> {
   try {
     const out = execFileSync(
       'git',
-      ['log', '--format=%x01%cI', '--name-only', '--', 'src/content'],
+      [
+        'log',
+        '--format=%x01%cI',
+        '--name-only',
+        '--',
+        'src/content',
+        // the demo/test book, only rendered when SAGAS_FIXTURES is set
+        'tests/fixtures/books',
+      ],
       { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
     );
     let currentDate = '';

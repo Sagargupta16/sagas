@@ -2,6 +2,35 @@ import { defineCollection } from 'astro:content';
 import { z } from 'astro/zod';
 import { glob } from 'astro/loaders';
 
+/**
+ * Demo and test builds (`SAGAS_FIXTURES=1`) also load the sample book in
+ * `tests/fixtures/books/`, so the reader always has a chapter to run against.
+ * Production builds never set the flag and load `src/content/books/` only.
+ */
+const withFixtures = Boolean(process.env.SAGAS_FIXTURES);
+const ROOTS = withFixtures
+  ? ['src/content/books', 'tests/fixtures/books']
+  : ['src/content/books'];
+
+/** Entry id relative to its books root, matching the single-root default
+ *  (`<slug>/book`, `<slug>/chapters/<file>`). */
+const idFromRoot = ({ entry }: { entry: string }) => {
+  const root = ROOTS.find((r) => entry.startsWith(`${r}/`)) ?? '';
+  return entry
+    .slice(root.length + 1)
+    .replace(/\.md$/, '')
+    .toLowerCase();
+};
+
+const booksLoader = (pattern: string) =>
+  withFixtures
+    ? glob({
+        pattern: ROOTS.map((root) => `${root}/${pattern}`),
+        base: '.',
+        generateId: idFromRoot,
+      })
+    : glob({ pattern, base: './src/content/books' });
+
 /** Media links must be https or site-relative -- never javascript:, data:,
  *  or plain http. Enforced here so a bad frontmatter line fails the build. */
 const mediaUrl = z
@@ -11,7 +40,7 @@ const mediaUrl = z
   });
 
 const books = defineCollection({
-  loader: glob({ pattern: '*/book.md', base: './src/content/books' }),
+  loader: booksLoader('*/book.md'),
   schema: z
     .object({
       title: z.string().min(1),
@@ -32,7 +61,7 @@ const books = defineCollection({
 });
 
 const chapters = defineCollection({
-  loader: glob({ pattern: '*/chapters/*.md', base: './src/content/books' }),
+  loader: booksLoader('*/chapters/*.md'),
   schema: z.object({
     title: z.string().min(1),
     order: z.number().int().positive(),
