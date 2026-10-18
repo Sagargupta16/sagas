@@ -1,7 +1,7 @@
 {
   "name": "sagas",
   "type": "module",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": true,
   "packageManager": "pnpm@11.10.0",
   "engines": {
@@ -20,16 +20,16 @@
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
-    "@astrojs/sitemap": "^3.7.3",
-    "astro": "^7.1.0"
+    "@astrojs/sitemap": "^3.7.4",
+    "astro": "^7.4.0"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.9",
-    "@astrojs/markdown-satteri": "^0.3.3",
-    "@fontsource-variable/eczar": "^5.2.8",
-    "@fontsource-variable/literata": "^5.2.8",
-    "@playwright/test": "^1.61.1",
-    "prettier": "^3.9.5",
+    "@astrojs/check": "^0.9.10",
+    "@astrojs/markdown-satteri": "^0.4.4",
+    "@fontsource-variable/eczar": "^5.3.0",
+    "@fontsource-variable/literata": "^5.3.0",
+    "@playwright/test": "^1.64.1",
+    "prettier": "^3.9.10",
     "prettier-plugin-astro": "^0.14.1",
     "typescript": "^6.0.3"
   }

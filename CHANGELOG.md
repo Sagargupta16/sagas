@@ -2,6 +2,44 @@
 
 All notable changes to sagas.
 
+## [0.2.3] - 2026-10-18
+
+### Fixed
+
+- Reading progress no longer resets on mobile reloads. The `resize` listener
+  counted as reader engagement, and mobile browsers fire `resize` on load and
+  whenever the URL bar collapses, so a saved 50% was overwritten with 0%
+  before the reader scrolled. `resize` now only redraws the progress bar.
+  Reproduced and verified with a temporary long chapter: the reader suite
+  failed 3 of 3 runs on the mobile project before the fix and passed 36/36
+  across desktop, mobile and 320px after it.
+- Chapter meta descriptions append `...` only when the excerpt is actually
+  truncated (short chapters ended in `text....`).
+- `pnpm format:check` no longer fails on every lockfile update:
+  `pnpm-lock.yaml` is now in `.prettierignore`, because pnpm 11 writes a
+  layout Prettier rejects.
+
+### Security
+
+- Overrode `sharp` to 0.35.5 (high, librsvg vulnerability,
+  GHSA-wq5f-xc86-pv6w, via `astro`). `pnpm audit` is clean.
+- Recorded from 2026-10-06 (#12): lockfile-only bumps of `undici` 8.11.2,
+  `fast-uri` 3.1.8, `http-cache-semantics` 4.3.0, `source-map-js` 1.2.2 and
+  `smol-toml` 1.9.0.
+
+### Changed
+
+- Dependencies: `astro` 7.4.0, `@astrojs/sitemap` 3.7.4, `@astrojs/check`
+  0.9.10, `@astrojs/markdown-satteri` 0.4.4 (the `--` dash rule re-verified
+  on a built chapter), `@playwright/test` 1.64.1, `prettier` 3.9.10,
+  Fontsource Eczar and Literata 5.3.0. TypeScript stays on 6.x because
+  `@astrojs/check` does not accept 7 yet, and `prettier-plugin-astro` stays
+  on 0.14.x because 1.x reflows inline text into visible spaces before
+  punctuation.
+- README: CI, deploy and live-site badges, plus a "How it works" section
+  with an architecture diagram and the design decisions behind it.
+- Added `SECURITY.md` with the private vulnerability reporting policy (#14).
+
 ## [0.2.2] - 2026-09-21
 
 ### Security

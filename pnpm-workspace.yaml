@@ -11,3 +11,4 @@ overrides:
   svgo@4: '^4.0.2'
   devalue@5: '^5.9.2'
   smol-toml@1: '^1.7.1'
+  sharp@0: '^0.35.5'
