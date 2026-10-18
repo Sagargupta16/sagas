@@ -1,5 +1,10 @@
 # sagas
 
+[![CI](https://github.com/Sagargupta16/sagas/actions/workflows/ci.yml/badge.svg)](https://github.com/Sagargupta16/sagas/actions/workflows/ci.yml)
+[![Deploy](https://github.com/Sagargupta16/sagas/actions/workflows/deploy.yml/badge.svg)](https://github.com/Sagargupta16/sagas/actions/workflows/deploy.yml)
+[![Live site](https://img.shields.io/badge/live-sagargupta.online%2Fsagas-informational)](https://sagargupta.online/sagas/)
+[![Astro 7](https://img.shields.io/badge/Astro-7-orange)](https://astro.build)
+
 A living library of unfinished books.
 
 Original fantasy, fan fiction, and essays on how I see the world -- written in
@@ -34,6 +39,49 @@ localStorage):
   revision count
 
 Motion honors `prefers-reduced-motion` everywhere.
+
+## How it works
+
+```mermaid
+flowchart LR
+  subgraph repo["Git repo (the writing log)"]
+    md["src/content/books/[slug]/<br/>book.md + chapters/NN-*.md"]
+    hist["git log --name-only<br/>(one pass per build)"]
+  end
+  subgraph build["astro build (static)"]
+    schema["content.config.ts<br/>zod schema"]
+    verify["verify:content<br/>cross-file invariants"]
+    pages["shelves, book pages,<br/>chapter reader"]
+    feeds["rss.xml + sitemap<br/>JSON-LD, OG tags"]
+  end
+  subgraph browser["Reader (client-side only)"]
+    prefs["prefs + progress<br/>localStorage"]
+    tts["Web Speech API<br/>+ Media Session"]
+  end
+  md --> schema --> pages
+  md --> verify
+  hist --> pages
+  pages --> feeds
+  pages -->|GitHub Pages| prefs
+  pages --> tts
+```
+
+- **Content is the database.** Each book is a folder of Markdown; the Astro
+  content collection schema rejects bad frontmatter at build time, and
+  `scripts/verify-content.mjs` catches what a per-file schema cannot (orphan
+  chapters, duplicate `order`, filename/order mismatch, future `publishedOn`).
+- **Git is the writing history.** One `git log` pass per build maps every
+  chapter to its first-drafted date, last revision and revision count, so the
+  public "how this was written" timeline costs one child process, not one per
+  chapter.
+- **No backend, no accounts.** Theme, typeface, text size, spacing and
+  per-chapter progress live in `localStorage`; preferences apply in an inline
+  head script before first paint so there is no theme flash.
+- **Read-aloud without a TTS service.** The browser's speech synthesis drives
+  narration, with voice, speed, sleep timer and lock-screen controls via the
+  Media Session API.
+- **The dash rule reaches the prose.** Markdown runs through satteri with
+  smart punctuation off, so `--` in a chapter stays `--`.
 
 ## Stack
 

@@ -96,6 +96,10 @@ Invoke via the Skill tool when the trigger matches. The craft knowledge base is 
 
 - `markdown.processor: satteri({ features: { smartPunctuation: false } })` in `astro.config.mjs` -- Markdown `--` must NOT become en-dashes (dash rule applies to prose too). The old `smartypants` flag is deprecated in Astro 7.
 - pnpm 11 needs `allowBuilds` in `pnpm-workspace.yaml` for esbuild/sharp; without it installs fail.
+- `pnpm-lock.yaml` is in `.prettierignore`: pnpm's own writer disagrees with Prettier, so every lockfile update used to fail `pnpm format:check`.
+- Hold `prettier-plugin-astro` at 0.14.x: 1.x reflows inline text around closing tags (`</a\n>.` becomes `</a>\n.`), which renders a visible space before punctuation.
+- With zero chapters CI skips the reader tests, so reader-script changes go unverified. Before shipping one, add a throwaway long chapter under `src/content/books/zz-probe/`, run `pnpm build` and `pnpm test:e2e`, then delete it.
+- Locally, `astro preview` can detach into a background server and exit, which makes Playwright report "Process from config.webServer exited early". Run `pnpm test:e2e` again (it reuses the running server) and finish with `pnpm exec astro preview stop`.
 - Fontsource imports must point at `index.css` explicitly or `astro check` fails (no types on the bare entry).
 - Fonts are self-hosted via Fontsource (Eczar display, Literata body). No Google Fonts CDN.
 - Site deploys at a subpath (`base: '/sagas'` in `astro.config.mjs`): every internal `href`/link must go through `withBase()` from `src/lib/shelf.ts`, never a raw `/path` string. `@astrojs/rss` link fields also need `withBase()` -- `site`/`base` aren't applied to them automatically.

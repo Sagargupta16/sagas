@@ -40,14 +40,14 @@ const history = chapter.filePath
   ? writingHistory(chapter.filePath)
   : { firstDrafted: null, lastRevised: null, revisions: 0 };
 
-const excerpt = (chapter.body ?? '')
+const bodyWords = (chapter.body ?? '')
   .replaceAll(/[#>*_`\[\]]/g, '')
   .trim()
   .split(/\s+/)
-  .slice(0, 28)
-  .join(' ');
+  .filter(Boolean);
+const excerpt = bodyWords.slice(0, 28).join(' ');
 const description = excerpt
-  ? `${excerpt}...`
+  ? `${excerpt}${bodyWords.length > 28 ? '...' : ''}`
   : `Chapter ${chapter.data.order} of ${book.data.title}.`;
 
 const articleLd = {
@@ -341,16 +341,21 @@ const articleLd = {
         saveTimer = setTimeout(persist, 250);
         ticking = false;
       };
-      const onScroll = () => {
-        engaged = true;
+      const schedule = () => {
         if (!ticking) {
           ticking = true;
           requestAnimationFrame(update);
         }
       };
+      const onScroll = () => {
+        engaged = true;
+        schedule();
+      };
       bar.style.width = currentPct() + '%';
       window.addEventListener('scroll', onScroll, { passive: true });
-      window.addEventListener('resize', onScroll, { passive: true });
+      // Mobile browsers fire resize on load and whenever the URL bar
+      // collapses; that is not reading, so it must not count as engagement.
+      window.addEventListener('resize', schedule, { passive: true });
       window.addEventListener('pagehide', persist);
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') persist();
