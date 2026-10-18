@@ -135,8 +135,8 @@ pnpm screenshots     # README images, from a running demo build
 ```
 
 CI runs all of those on every pull request: it builds the real site, checks
-the demo book is not in it, then rebuilds with the demo book and runs the
-browser suite. Pushes to `main` deploy the real build to GitHub Pages.
+the demo book is not in it, runs the browser suite against it, then rebuilds
+with the demo book and runs the suite again. Pushes to `main` deploy the real build to GitHub Pages.
 
 ## Quality
 

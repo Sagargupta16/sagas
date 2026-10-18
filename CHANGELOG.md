@@ -11,14 +11,16 @@ All notable changes to sagas.
   `pnpm dev:demo`, `pnpm build:demo` and `pnpm test:e2e:demo`
   (`scripts/with-fixtures.mjs` sets the flag so it also works on Windows). The
   production build and the deploy never include it, and CI now checks that.
-- CI runs the browser suite against the demo build, so the reader tests run
-  on every PR. Before this, 12 of 42 were skipped because the library has no
+- CI runs the browser suite against the production build and again against
+  the demo build, so the reader tests run on every PR. Before this, 12 of 42 were skipped because the library has no
   chapters. The suite is now 78 tests, 26 per viewport, and none skip. New
   coverage: progress saved by a real scroll, the resume offer, arrow-key
   chapter navigation, the continue-reading card, chapter order on the book
   page, draft chapters kept out of RSS, slash-terminated canonicals and
   sitemap entries, glass blur surviving minification, and the `--` dash rule
-  in built prose. Passed 234/234 with `--repeat-each=3`.
+  in built prose. Passed 234/234 with `--repeat-each=3`. `SAGAS_FIXTURES`
+  must be exactly `1`, and `scripts/with-fixtures.mjs` quotes its arguments
+  so `pnpm test:e2e:demo -g "arrow keys move"` works.
 - README screenshots at desktop and phone widths, taken from the demo build.
   `pnpm screenshots` (`scripts/screenshots.mjs`) regenerates them as WebP
   through the browser's own encoder, so there is no image dependency.

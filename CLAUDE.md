@@ -46,8 +46,9 @@ pnpm screenshots     # README images; needs `pnpm preview` of a demo build
 ```
 
 CI runs all of these on every PR. It builds the real site, asserts
-`dist/books/reader-demo` is absent, then rebuilds with `pnpm build:demo` and
-runs `pnpm test:e2e:demo`, so `tests/e2e/reader.spec.ts` always has chapters.
+`dist/books/reader-demo` is absent, runs `pnpm test:e2e` on it (the empty
+shelves as shipped), then rebuilds with `pnpm build:demo` and runs
+`pnpm test:e2e:demo`, so `tests/e2e/reader.spec.ts` always has chapters.
 Without `SAGAS_FIXTURES` the reader tests fall back to the first real chapter
 and skip while the shelves are empty.
 

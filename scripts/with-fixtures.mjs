@@ -17,7 +17,10 @@ if (args.length === 0) {
   process.exit(2);
 }
 
-const result = spawnSync(`pnpm exec ${args.join(' ')}`, {
+// Quote every argument so a value with spaces (`-g "arrow keys move"`)
+// reaches the binary as one argument. Double quotes work in both cmd and sh.
+const quoted = args.map((arg) => `"${arg.replaceAll('"', '\\"')}"`);
+const result = spawnSync(`pnpm exec ${quoted.join(' ')}`, {
   stdio: 'inherit',
   shell: true,
   env: { ...process.env, SAGAS_FIXTURES: '1' },

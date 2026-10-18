@@ -7,7 +7,7 @@ import { glob } from 'astro/loaders';
  * `tests/fixtures/books/`, so the reader always has a chapter to run against.
  * Production builds never set the flag and load `src/content/books/` only.
  */
-const withFixtures = Boolean(process.env.SAGAS_FIXTURES);
+const withFixtures = process.env.SAGAS_FIXTURES === '1';
 const ROOTS = withFixtures
   ? ['src/content/books', 'tests/fixtures/books']
   : ['src/content/books'];

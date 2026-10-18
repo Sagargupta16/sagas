@@ -10,7 +10,7 @@ import { expect, test } from '@playwright/test';
  */
 
 const HOME = '/sagas/';
-const FIXTURES = Boolean(process.env.SAGAS_FIXTURES);
+const FIXTURES = process.env.SAGAS_FIXTURES === '1';
 const DEMO_BOOK = '/sagas/books/reader-demo/';
 const DEMO_CH1 = `${DEMO_BOOK}01-the-first-lamp/`;
 const DEMO_CH2 = `${DEMO_BOOK}02-tanners-bridge/`;
