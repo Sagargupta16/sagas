@@ -71,7 +71,9 @@ const EMPTY_SHELF_NOTES: Record<Shelf, string> = {
     <section class="hero rise">
       <div class="hero-copy">
         <p class="eyebrow">
-          <span class="spark" aria-hidden="true">&#10022;</span>
+          <span class="spark" aria-hidden="true">
+            &#10022;
+          </span>
           Written in the open
         </p>
         <h1>A living library of unfinished books.</h1>
@@ -81,32 +83,30 @@ const EMPTY_SHELF_NOTES: Record<Shelf, string> = {
           writing log.
         </p>
         <p class="stats" aria-label="Library status">
-          {
-            libraryEmpty ? (
-              <>
-                <span>
-                  <strong>3</strong> shelves, built and waiting
-                </span>
-                <span>
-                  <strong>1st</strong> book underway
-                </span>
-              </>
-            ) : (
-              <>
-                <span>
-                  <strong>{totalBooks}</strong> book
-                  {totalBooks === 1 ? '' : 's'} taking shape
-                </span>
-                <span>
-                  <strong>{totalChapters}</strong> chapter
-                  {totalChapters === 1 ? '' : 's'} written
-                </span>
-                <span>
-                  <strong>3</strong> shelves
-                </span>
-              </>
-            )
-          }
+          {libraryEmpty ? (
+            <>
+              <span>
+                <strong>3</strong> shelves, built and waiting
+              </span>
+              <span>
+                <strong>1st</strong> book underway
+              </span>
+            </>
+          ) : (
+            <>
+              <span>
+                <strong>{totalBooks}</strong> book
+                {totalBooks === 1 ? '' : 's'} taking shape
+              </span>
+              <span>
+                <strong>{totalChapters}</strong> chapter
+                {totalChapters === 1 ? '' : 's'} written
+              </span>
+              <span>
+                <strong>3</strong> shelves
+              </span>
+            </>
+          )}
         </p>
       </div>
 
@@ -122,9 +122,7 @@ const EMPTY_SHELF_NOTES: Record<Shelf, string> = {
           <span class="plate-spine"></span>
           <span class="plate-flame">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path
-                d="M12 2c1.2 3.3-1.8 4.8-1.8 7.4 0 1.3 1 2.1 1 2.1s-.4-2.2 1.3-3.4c1.9 2 3.5 3.6 3.5 6.2A6 6 0 0 1 6 14.3C6 9.8 11 8.4 12 2Z"
-              ></path>
+              <path d="M12 2c1.2 3.3-1.8 4.8-1.8 7.4 0 1.3 1 2.1 1 2.1s-.4-2.2 1.3-3.4c1.9 2 3.5 3.6 3.5 6.2A6 6 0 0 1 6 14.3C6 9.8 11 8.4 12 2Z"></path>
             </svg>
           </span>
           <span class="plate-title">Chapter One</span>
@@ -210,79 +208,72 @@ const EMPTY_SHELF_NOTES: Record<Shelf, string> = {
       }
     </script>
 
-    {
-      shelves.map(({ shelf, name, blurb, books }) => (
-        <section
-          class="shelf rise"
-          id={name.toLowerCase().replace(/\s+/g, '-')}
-        >
-          <div class="shelf-head">
-            <h2>{name}</h2>
-            <span class="count">{books.length}</span>
-          </div>
-          <p class="blurb">{blurb}</p>
+    {shelves.map(({ shelf, name, blurb, books }) => (
+      <section class="shelf rise" id={name.toLowerCase().replace(/\s+/g, '-')}>
+        <div class="shelf-head">
+          <h2>{name}</h2>
+          <span class="count">{books.length}</span>
+        </div>
+        <p class="blurb">{blurb}</p>
 
-          {books.length === 0 ? (
-            <div class="shelf-empty">
-              <div class="ghost-stack" aria-hidden="true">
-                <span class="ghost-book" />
-                <span class="ghost-book" />
-                <span class="ghost-book" />
-              </div>
-              <div class="shelf-empty-copy">
-                <p class="shelf-empty-title">
-                  This shelf opens with its first book.
-                </p>
-                <p class="shelf-empty-note">{EMPTY_SHELF_NOTES[shelf]}</p>
-              </div>
+        {books.length === 0 ? (
+          <div class="shelf-empty">
+            <div class="ghost-stack" aria-hidden="true">
+              <span class="ghost-book" />
+              <span class="ghost-book" />
+              <span class="ghost-book" />
             </div>
-          ) : (
-            <ul>
-              {books.map((book) => {
-                const slug = bookSlug(book.id);
-                const count = chapterCount(slug);
-                return (
-                  <li>
-                    <a href={bookHref(slug)} class="entry">
-                      <span class="entry-top">
-                        <span class="book-title">{book.data.title}</span>
-                        <span class="pill" data-status={book.data.status}>
-                          {STATUS_LABELS[book.data.status]}
+            <div class="shelf-empty-copy">
+              <p class="shelf-empty-title">
+                This shelf opens with its first book.
+              </p>
+              <p class="shelf-empty-note">{EMPTY_SHELF_NOTES[shelf]}</p>
+            </div>
+          </div>
+        ) : (
+          <ul>
+            {books.map((book) => {
+              const slug = bookSlug(book.id);
+              const count = chapterCount(slug);
+              return (
+                <li>
+                  <a href={bookHref(slug)} class="entry">
+                    <span class="entry-top">
+                      <span class="book-title">{book.data.title}</span>
+                      <span class="pill" data-status={book.data.status}>
+                        {STATUS_LABELS[book.data.status]}
+                      </span>
+                    </span>
+                    <span class="synopsis">{book.data.synopsis}</span>
+                    <span class="meta">
+                      {count > 0 && (
+                        <span>
+                          {count} chapter{count === 1 ? '' : 's'}
                         </span>
-                      </span>
-                      <span class="synopsis">{book.data.synopsis}</span>
-                      <span class="meta">
-                        {count > 0 && (
-                          <span>
-                            {count} chapter{count === 1 ? '' : 's'}
-                          </span>
-                        )}
-                        {book.data.universe && (
-                          <span>{book.data.universe}</span>
-                        )}
-                        <span>since {formatDate(book.data.startedOn)}</span>
-                        <FormatBadges
-                          pdfUrl={book.data.pdfUrl}
-                          audioUrl={book.data.audioUrl}
-                        />
-                      </span>
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+                      )}
+                      {book.data.universe && <span>{book.data.universe}</span>}
+                      <span>since {formatDate(book.data.startedOn)}</span>
+                      <FormatBadges
+                        pdfUrl={book.data.pdfUrl}
+                        audioUrl={book.data.audioUrl}
+                      />
+                    </span>
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        )}
 
-          {shelf === 'fanfic' && (
-            <p class="note">
-              Everything on this shelf is transformative fan work: free,
-              non-commercial, and unaffiliated with the rights holders of the
-              universes it borrows.
-            </p>
-          )}
-        </section>
-      ))
-    }
+        {shelf === 'fanfic' && (
+          <p class="note">
+            Everything on this shelf is transformative fan work: free,
+            non-commercial, and unaffiliated with the rights holders of the
+            universes it borrows.
+          </p>
+        )}
+      </section>
+    ))}
 
     <section class="colophon rise">
       <p class="eyebrow">How this library works</p>
@@ -304,9 +295,9 @@ const EMPTY_SHELF_NOTES: Record<Shelf, string> = {
         <div class="colophon-item">
           <h3>Follow along</h3>
           <p>
-            New chapters land in the <a
-              href={new URL(withBase('/rss.xml'), Astro.site)}>RSS feed</a
-            > once they are published. No accounts, no tracking.
+            New chapters land in the{' '}
+            <a href={new URL(withBase('/rss.xml'), Astro.site)}>RSS feed</a>{' '}
+            once they are published. No accounts, no tracking.
           </p>
         </div>
       </div>

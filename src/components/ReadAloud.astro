@@ -39,7 +39,9 @@ const { bookTitle, chapterTitle, nextHref } = Astro.props;
       >
         <path d="M6 5h4v14H6zM14 5h4v14h-4z"></path>
       </svg>
-      <span class="ra-label" data-ra-label>Read aloud</span>
+      <span class="ra-label" data-ra-label>
+        Read aloud
+      </span>
     </button>
     <button
       type="button"
@@ -60,9 +62,7 @@ const { bookTitle, chapterTitle, nextHref } = Astro.props;
       aria-expanded="false"
     >
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path
-          d="M3 7h11a3 3 0 0 1 6 0h1v2h-1a3 3 0 0 1-6 0H3zM3 15h5a3 3 0 0 1 6 0h7v2h-7a3 3 0 0 1-6 0H3z"
-        ></path>
+        <path d="M3 7h11a3 3 0 0 1 6 0h1v2h-1a3 3 0 0 1-6 0H3zM3 15h5a3 3 0 0 1 6 0h7v2h-7a3 3 0 0 1-6 0H3z"></path>
       </svg>
     </button>
   </div>
@@ -73,7 +73,9 @@ const { bookTitle, chapterTitle, nextHref } = Astro.props;
       <select data-ra-voice></select>
     </label>
     <label class="ra-field">
-      <span>Speed <b data-ra-rate-label>1.0x</b></span>
+      <span>
+        Speed <b data-ra-rate-label>1.0x</b>
+      </span>
       <input
         type="range"
         data-ra-rate

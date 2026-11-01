@@ -59,7 +59,9 @@ const bookLd = {
   <main id="main">
     <article class="rise">
       <p class="eyebrow">
-        <a href={withBase('/')} class="back">Library</a>
+        <a href={withBase('/')} class="back">
+          Library
+        </a>
         <span class="sep">/</span>
         {SHELVES[book.data.shelf].name}
       </p>
@@ -78,78 +80,74 @@ const bookLd = {
       </div>
     </article>
 
-    {
-      hasFormats && (
-        <section class="formats rise">
-          <div class="chapters-head">
-            <h2>Formats</h2>
-          </div>
-          {book.data.audioUrl && (
-            <AudioPlayer
-              url={book.data.audioUrl}
-              title={book.data.title}
-              label="Listen to the audiobook"
-            />
-          )}
-          {book.data.pdfUrl && (
-            <PdfReader url={book.data.pdfUrl} title={book.data.title} />
-          )}
-        </section>
-      )
-    }
+    {hasFormats && (
+      <section class="formats rise">
+        <div class="chapters-head">
+          <h2>Formats</h2>
+        </div>
+        {book.data.audioUrl && (
+          <AudioPlayer
+            url={book.data.audioUrl}
+            title={book.data.title}
+            label="Listen to the audiobook"
+          />
+        )}
+        {book.data.pdfUrl && (
+          <PdfReader url={book.data.pdfUrl} title={book.data.title} />
+        )}
+      </section>
+    )}
 
     <section class="chapters rise">
       <div class="chapters-head">
         <h2>Chapters</h2>
         <span class="count">{chapters.length}</span>
       </div>
-      {
-        chapters.length === 0 ? (
-          <div class="empty">
-            <ol class="chapter-list">
-              <li aria-hidden="true">
-                <span class="num">01</span>
-                <span class="skeleton skeleton-line" style="width: 55%" />
-                <span class="pill">planned</span>
-              </li>
-              <li aria-hidden="true">
-                <span class="num">02</span>
-                <span class="skeleton skeleton-line" style="width: 40%" />
-                <span class="pill">planned</span>
-              </li>
-            </ol>
-            <p class="empty-note">
-              No chapters yet. This book is still forming; the first chapter
-              appears here the moment it is written.
-            </p>
-          </div>
-        ) : (
+      {chapters.length === 0 ? (
+        <div class="empty">
           <ol class="chapter-list">
-            {chapters.map((chapter) => (
-              <li>
-                <a href={chapterHref(slug, chapter.id)} class="chapter-link">
-                  <span class="num">
-                    {String(chapter.data.order).padStart(2, '0')}
-                  </span>
-                  <span class="chapter-main">
-                    <span class="chapter-title">{chapter.data.title}</span>
-                    <span class="chapter-meta">
-                      <span>{readingMinutes(chapter.body)} min read</span>
-                      <FormatBadges
-                        pdfUrl={chapter.data.pdfUrl}
-                        audioUrl={chapter.data.audioUrl}
-                      />
-                    </span>
-                  </span>
-                  <span class="pill" data-status={chapter.data.status}>
-                    {CHAPTER_STATUS_LABELS[chapter.data.status]}
-                  </span>
-                </a>
-              </li>
-            ))}
+            <li aria-hidden="true">
+              <span class="num">01</span>
+              <span class="skeleton skeleton-line" style="width: 55%" />
+              <span class="pill">planned</span>
+            </li>
+            <li aria-hidden="true">
+              <span class="num">02</span>
+              <span class="skeleton skeleton-line" style="width: 40%" />
+              <span class="pill">planned</span>
+            </li>
           </ol>
-        )
-      }
+          <p class="empty-note">
+            No chapters yet. This book is still forming; the first chapter
+            appears here the moment it is written.
+          </p>
+        </div>
+      ) : (
+        <ol class="chapter-list">
+          {chapters.map((chapter) => (
+            <li>
+              <a href={chapterHref(slug, chapter.id)} class="chapter-link">
+                <span class="num">
+                  {String(chapter.data.order).padStart(2, '0')}
+                </span>
+                <span class="chapter-main">
+                  <span class="chapter-title">{chapter.data.title}</span>
+                  <span class="chapter-meta">
+                    <span>{readingMinutes(chapter.body)} min read</span>
+                    <FormatBadges
+                      pdfUrl={chapter.data.pdfUrl}
+                      audioUrl={chapter.data.audioUrl}
+                    />
+                  </span>
+                </span>
+                <span class="pill" data-status={chapter.data.status}>
+                  {CHAPTER_STATUS_LABELS[chapter.data.status]}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      )}
     </section>
   </main>
 </Base>
