@@ -2,6 +2,15 @@
 
 All notable changes to sagas.
 
+## [0.3.1] - 2026-11-01
+
+### Fixed
+
+- The Pages deploy failed with "Multiple versions of pnpm specified" after the
+  pnpm bumps of 2026-11-01: `deploy.yml` pinned `pnpm@11.10.0` while
+  `package.json` moved to `pnpm@12.16.1`. The deploy now takes the version from
+  `packageManager` only.
+
 ## [0.3.0] - 2026-10-18
 
 ### Added

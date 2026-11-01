@@ -23,9 +23,11 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # full history so per-chapter writing dates build
+      # No package-manager input: the action detects pnpm from pnpm-lock.yaml and
+      # pnpm/action-setup reads the version from package.json's packageManager,
+      # which Renovate keeps current. A pinned input here drifted from it and
+      # failed the build with "Multiple versions of pnpm specified".
       - uses: withastro/action@v6
-        with:
-          package-manager: pnpm@11.10.0
 
   deploy:
     needs: build
