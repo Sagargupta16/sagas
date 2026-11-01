@@ -82,7 +82,9 @@ const articleLd = {
   structuredData={[articleLd]}
   publishedTime={chapter.data.publishedOn}
 >
-  <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
+  <div class="progress" aria-hidden="true">
+    <span id="progress-bar"></span>
+  </div>
   <main
     id="main"
     class="read"
@@ -93,9 +95,13 @@ const articleLd = {
   >
     <header class="chapter-head rise">
       <p class="eyebrow crumb">
-        <a href={withBase('/')} class="back">Library</a>
+        <a href={withBase('/')} class="back">
+          Library
+        </a>
         <span class="sep">/</span>
-        <a href={bookHref(slug)} class="back">{book.data.title}</a>
+        <a href={bookHref(slug)} class="back">
+          {book.data.title}
+        </a>
       </p>
       <p class="chapter-num">Chapter {chapter.data.order}</p>
       <h1>{chapter.data.title}</h1>
@@ -104,22 +110,16 @@ const articleLd = {
           {CHAPTER_STATUS_LABELS[chapter.data.status]}
         </span>
         <span>{minutes} min read</span>
-        {
-          chapter.data.publishedOn && (
-            <span>{formatDate(chapter.data.publishedOn)}</span>
-          )
-        }
+        {chapter.data.publishedOn && (
+          <span>{formatDate(chapter.data.publishedOn)}</span>
+        )}
       </p>
-      {
-        chapter.data.audioUrl && (
-          <AudioPlayer url={chapter.data.audioUrl} title={chapter.data.title} />
-        )
-      }
-      {
-        chapter.data.pdfUrl && (
-          <PdfReader url={chapter.data.pdfUrl} title={chapter.data.title} />
-        )
-      }
+      {chapter.data.audioUrl && (
+        <AudioPlayer url={chapter.data.audioUrl} title={chapter.data.title} />
+      )}
+      {chapter.data.pdfUrl && (
+        <PdfReader url={chapter.data.pdfUrl} title={chapter.data.title} />
+      )}
       <ReadAloud
         bookTitle={book.data.title}
         chapterTitle={chapter.data.title}
@@ -151,52 +151,76 @@ const articleLd = {
         <fieldset class="prefs-row">
           <legend class="prefs-label">Theme</legend>
           <div class="seg" data-pref="theme">
-            <button type="button" data-value="auto">Auto</button>
-            <button type="button" data-value="dark">Dark</button>
-            <button type="button" data-value="light">Light</button>
-            <button type="button" data-value="sepia">Sepia</button>
+            <button type="button" data-value="auto">
+              Auto
+            </button>
+            <button type="button" data-value="dark">
+              Dark
+            </button>
+            <button type="button" data-value="light">
+              Light
+            </button>
+            <button type="button" data-value="sepia">
+              Sepia
+            </button>
           </div>
         </fieldset>
         <fieldset class="prefs-row">
           <legend class="prefs-label">Typeface</legend>
           <div class="seg" data-pref="font">
-            <button type="button" data-value="serif">Serif</button>
-            <button type="button" data-value="sans">Sans</button>
-            <button type="button" data-value="mono">Mono</button>
+            <button type="button" data-value="serif">
+              Serif
+            </button>
+            <button type="button" data-value="sans">
+              Sans
+            </button>
+            <button type="button" data-value="mono">
+              Mono
+            </button>
           </div>
         </fieldset>
         <fieldset class="prefs-row">
           <legend class="prefs-label">Text size</legend>
           <div class="seg" data-pref="size">
-            <button type="button" data-value="0.95rem" aria-label="Small text"
-              >A</button
-            >
+            <button type="button" data-value="0.95rem" aria-label="Small text">
+              A
+            </button>
             <button
               type="button"
               data-value="1.0625rem"
-              aria-label="Default text">A</button
+              aria-label="Default text"
             >
-            <button type="button" data-value="1.2rem" aria-label="Large text"
-              >A</button
-            >
+              A
+            </button>
+            <button type="button" data-value="1.2rem" aria-label="Large text">
+              A
+            </button>
             <button
               type="button"
               data-value="1.35rem"
-              aria-label="Extra large text">A</button
+              aria-label="Extra large text"
             >
+              A
+            </button>
           </div>
         </fieldset>
         <fieldset class="prefs-row">
           <legend class="prefs-label">Line spacing</legend>
           <div class="seg" data-pref="leading">
-            <button type="button" data-value="1.55">Tight</button>
-            <button type="button" data-value="1.75">Cozy</button>
-            <button type="button" data-value="2">Airy</button>
+            <button type="button" data-value="1.55">
+              Tight
+            </button>
+            <button type="button" data-value="1.75">
+              Cozy
+            </button>
+            <button type="button" data-value="2">
+              Airy
+            </button>
           </div>
         </fieldset>
-        <button type="button" class="prefs-reset" data-prefs-reset
-          >Reset to defaults</button
-        >
+        <button type="button" class="prefs-reset" data-prefs-reset>
+          Reset to defaults
+        </button>
       </div>
     </header>
 
@@ -204,58 +228,54 @@ const articleLd = {
       <Content />
     </article>
 
-    {
-      history.revisions > 0 && (
-        <aside class="writing-history rise">
-          <span class="wh-eyebrow">Written in the open</span>
-          <dl class="wh-stats">
-            {history.firstDrafted && (
-              <div>
-                <dt>First drafted</dt>
-                <dd>{formatDate(history.firstDrafted)}</dd>
-              </div>
-            )}
-            {history.lastRevised && (
-              <div>
-                <dt>Last revised</dt>
-                <dd>{formatDate(history.lastRevised)}</dd>
-              </div>
-            )}
+    {history.revisions > 0 && (
+      <aside class="writing-history rise">
+        <span class="wh-eyebrow">Written in the open</span>
+        <dl class="wh-stats">
+          {history.firstDrafted && (
             <div>
-              <dt>Revisions</dt>
-              <dd>
-                {history.revisions} commit{history.revisions === 1 ? '' : 's'}
-              </dd>
+              <dt>First drafted</dt>
+              <dd>{formatDate(history.firstDrafted)}</dd>
             </div>
-          </dl>
-          <p class="wh-note">
-            Every edit to this chapter is public. This is the git history, not a
-            marketing claim.
-          </p>
-        </aside>
-      )
-    }
+          )}
+          {history.lastRevised && (
+            <div>
+              <dt>Last revised</dt>
+              <dd>{formatDate(history.lastRevised)}</dd>
+            </div>
+          )}
+          <div>
+            <dt>Revisions</dt>
+            <dd>
+              {history.revisions} commit{history.revisions === 1 ? '' : 's'}
+            </dd>
+          </div>
+        </dl>
+        <p class="wh-note">
+          Every edit to this chapter is public. This is the git history, not a
+          marketing claim.
+        </p>
+      </aside>
+    )}
 
-    {
-      (prev || next) && (
-        <nav class="pager rise" aria-label="Chapter navigation">
-          {prev ? (
-            <a href={chapterHref(slug, prev.id)} class="page prev">
-              <span class="dir">&larr; Previous</span>
-              <span class="page-title">{prev.data.title}</span>
-            </a>
-          ) : (
-            <span class="page placeholder" aria-hidden="true" />
-          )}
-          {next && (
-            <a href={chapterHref(slug, next.id)} class="page next">
-              <span class="dir">Next &rarr;</span>
-              <span class="page-title">{next.data.title}</span>
-            </a>
-          )}
-        </nav>
-      )
-    }
+    {(prev || next) && (
+      <nav class="pager rise" aria-label="Chapter navigation">
+        {prev ? (
+          <a href={chapterHref(slug, prev.id)} class="page prev">
+            <span class="dir">&larr; Previous</span>
+            <span class="page-title">{prev.data.title}</span>
+          </a>
+        ) : (
+          <span class="page placeholder" aria-hidden="true" />
+        )}
+        {next && (
+          <a href={chapterHref(slug, next.id)} class="page next">
+            <span class="dir">Next &rarr;</span>
+            <span class="page-title">{next.data.title}</span>
+          </a>
+        )}
+      </nav>
+    )}
   </main>
 
   <script>

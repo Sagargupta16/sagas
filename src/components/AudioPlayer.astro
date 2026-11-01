@@ -29,7 +29,10 @@ const { url, title, label = 'Listen to this chapter' } = Astro.props;
   </div>
   <audio controls preload="none" src={url}>
     Your browser does not support audio playback.
-    <a href={url} download>Download the audio</a>.
+    <a href={url} download>
+      Download the audio
+    </a>
+    .
   </audio>
 </section>
 
