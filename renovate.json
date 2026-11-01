@@ -1,4 +1,11 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>Sagargupta16/shared-workflows"]
+  "extends": ["github>Sagargupta16/shared-workflows"],
+  "packageRules": [
+    {
+      "matchPackageNames": ["typescript"],
+      "allowedVersions": "<7",
+      "description": "TypeScript stays on 6.x: astro check errors 'does not currently support TypeScript 7.0' (2026-11-01, PR #19). Remove once astro check or its replacement supports TS 7."
+    }
+  ]
 }
