@@ -2,7 +2,7 @@
 name: frontend-quality
 description: Pre-ship UI quality gate for the sagas reading site -- accessibility (WCAG, keyboard, contrast), performance (fast static delivery, fonts, motion cost), and SEO (per-page metadata, canonical, OG/Twitter, sitemap, JSON-LD, RSS). Mobile-first, since the product is long-form reading on phones at night. Audits and fixes against this repo's design tokens and dash/motion house rules.
 when_to_use: |
-  Trigger on: "is this accessible", "a11y", "check accessibility", "make it mobile friendly", "is it fast", "performance", "Lighthouse", "Core Web Vitals", "SEO", "metadata", "OG image", "sitemap", "is this ready to ship visually", or before shipping a new page/section/route. Pairs with the `design` skill for visual fixes and `writing-craft` for prose.
+  Trigger on: "is this accessible", "a11y", "check accessibility", "make it mobile friendly", "is it fast", "performance", "Lighthouse", "Core Web Vitals", "SEO", "metadata", "OG image", "sitemap", "is this ready to ship visually", or before shipping a new page/section/route. Pairs with the `ui-design` skill for visual fixes and `writing-craft` for prose.
 ---
 
 # frontend-quality
@@ -45,7 +45,7 @@ The product is **reading long-form fiction and essays on a phone, often at night
 
 1. Identify scope (one component / one page / whole site).
 2. Audit each of the three axes above; report findings as `file:line | axis | issue | fix | severity`.
-3. Fix the safe, clear ones against the design tokens + house rules; for visual-judgment calls, pair with the `design` skill.
+3. Fix the safe, clear ones against the design tokens + house rules; for visual-judgment calls, pair with the `ui-design` skill.
 4. **Verify** (never claim "accessible/fast/indexed" on static reasoning for a visible change):
    - `pnpm check` + `pnpm build` clean.
    - Grep `dist/` for the new page's canonical, OG tags, and sitemap entry.
